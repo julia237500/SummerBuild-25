@@ -1,14 +1,16 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    port: 3000,
+  root: './',
+  build: {
+    outDir: 'dist',
   },
-  esbuild: {
-    loader: 'jsx',
-    include: /src\/.*\.jsx?$/,
-    exclude: [],
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+    },
   },
-}); 
+});

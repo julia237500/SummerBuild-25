@@ -1,9 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Home from '../pages/Home';
+import Home from '../components/Home';
 import SignIn from '../pages/SignIn';
 import SignUp from '../pages/SignUp';
-import MyRecipes from '../pages/MyRecipes';
+import MyRecipes from '../components/MyRecipes';
 import NewRecipe from '../pages/NewRecipe';
 import RecipeDetail from '../pages/RecipeDetail';
 
