@@ -1,23 +1,22 @@
 import { useState } from 'react';
-import { supabase } from './supabaseClient';
 import supabase from '../services/supabaseClient';
 
-export default function SignIn() {
+export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSignIn = async (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) alert(error.message);
-    else alert('Signed in successfully');
+    else alert('Check your email for confirmation link!');
   };
 
   return (
-    <form onSubmit={handleSignIn}>
+    <form onSubmit={handleSignUp}>
       <input type="email" onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
       <input type="password" onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
-      <button type="submit">Sign In</button>
+      <button type="submit">Sign Up</button>
     </form>
   );
 }
