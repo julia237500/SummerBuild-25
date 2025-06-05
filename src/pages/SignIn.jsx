@@ -1,20 +1,24 @@
 import { useState } from 'react';
+<<<<<<< HEAD:src/pages/SignIn.js
 import { supabase } from '../services/supabaseClient';
+=======
+import supabase from '../services/supabaseClient';
+>>>>>>> 1f10736925bcf75d717938419800fc0e885342a9:src/pages/SignIn.jsx
 
-export default function SignUp() {
+export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSignUp = async (e) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
     try {
       setError(null);
       setLoading(true);
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      alert('Check your email for confirmation link!');
+      // You might want to redirect the user or update the app state here
     } catch (error) {
       setError(error.message);
     } finally {
@@ -23,8 +27,8 @@ export default function SignUp() {
   };
 
   return (
-    <div className="sign-up-container">
-      <form onSubmit={handleSignUp}>
+    <div className="sign-in-container">
+      <form onSubmit={handleSignIn}>
         <div className="form-group">
           <input
             type="email"
@@ -45,7 +49,7 @@ export default function SignUp() {
         </div>
         {error && <div className="error-message">{error}</div>}
         <button type="submit" disabled={loading}>
-          {loading ? 'Signing up...' : 'Sign Up'}
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
     </div>

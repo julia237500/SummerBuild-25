@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
@@ -56,3 +57,18 @@ export default function Navbar() {
     </nav>
   );
 } 
+=======
+import { Link } from 'react-router-dom';
+
+function Navbar() {
+  return (
+    <nav>
+      <Link to="/">Home</Link> |{' '}
+      <Link to="/signin">Sign In</Link> |{' '}
+      <Link to="/signup">Sign Up</Link>
+    </nav>
+  );
+}
+
+export default Navbar;
+>>>>>>> 1f10736925bcf75d717938419800fc0e885342a9

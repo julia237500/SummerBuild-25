@@ -1,4 +1,5 @@
 import { useState } from 'react';
+<<<<<<< HEAD
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -17,10 +18,37 @@ export default function SignUp() {
       navigate('/signin');
     } catch (error) {
       setError(error.message);
+=======
+<<<<<<<< HEAD:src/pages/SignUp.js
+import { supabase } from '../services/supabaseClient';
+========
+import supabase from '../services/supabaseClient';
+>>>>>>>> 1f10736925bcf75d717938419800fc0e885342a9:src/pages/SignUp.jsx
+
+export default function SignUp() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    try {
+      setError(null);
+      setLoading(true);
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+      alert('Check your email for confirmation link!');
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+>>>>>>> 1f10736925bcf75d717938419800fc0e885342a9
     }
   };
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
@@ -86,3 +114,33 @@ export default function SignUp() {
     </div>
   );
 } 
+=======
+    <div className="sign-up-container">
+      <form onSubmit={handleSignUp}>
+        <div className="form-group">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+          />
+        </div>
+        {error && <div className="error-message">{error}</div>}
+        <button type="submit" disabled={loading}>
+          {loading ? 'Signing up...' : 'Sign Up'}
+        </button>
+      </form>
+    </div>
+  );
+}
+>>>>>>> 1f10736925bcf75d717938419800fc0e885342a9

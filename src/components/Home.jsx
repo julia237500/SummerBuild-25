@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { spoonacularApi } from '../services/spoonacularApi';
@@ -114,3 +115,10 @@ export default function Home() {
     </div>
   );
 } 
+=======
+function Home() {
+  return <h1>Welcome Home!</h1>;
+}
+
+export default Home;
+>>>>>>> 1f10736925bcf75d717938419800fc0e885342a9
