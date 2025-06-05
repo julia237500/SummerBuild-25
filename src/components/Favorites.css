@@ -1,0 +1,17 @@
+.favorites-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.favorites-container h1 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.favorites-container p {
+  color: #666;
+  font-size: 1.1rem;
+} 

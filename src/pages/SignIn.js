@@ -1,22 +1,53 @@
 import { useState } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase } from '../services/supabaseClient';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleSignIn = async (e) => {
     e.preventDefault();
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) alert(error.message);
-    else alert('Signed in successfully');
+    try {
+      setError(null);
+      setLoading(true);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      // You might want to redirect the user or update the app state here
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSignIn}>
-      <input type="email" onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
-      <input type="password" onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
-      <button type="submit">Sign In</button>
-    </form>
+    <div className="sign-in-container">
+      <form onSubmit={handleSignIn}>
+        <div className="form-group">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+          />
+        </div>
+        {error && <div className="error-message">{error}</div>}
+        <button type="submit" disabled={loading}>
+          {loading ? 'Signing in...' : 'Sign In'}
+        </button>
+      </form>
+    </div>
   );
 }
