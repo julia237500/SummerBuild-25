@@ -79,11 +79,32 @@ export const spoonacularApi = {
   getRecipeInstructions: async (id) => {
     try {
       const response = await fetch(
-        `${BASE_URL}/${id}/analyzedInstructions?apiKey=${API_KEY}`
+        `${BASE_URL}/${id}/analyzedInstructions?apiKey=${API_KEY}&stepBreakdown=true`
       );
       return handleResponse(response);
     } catch (error) {
       console.error('Error fetching recipe instructions:', error);
+      throw error;
+    }
+  },
+
+  // Get analyzed recipe instructions with equipment and ingredients
+  getAnalyzedInstructions: async (id) => {
+    try {
+      const params = new URLSearchParams({
+        apiKey: API_KEY,
+        stepBreakdown: true,
+      });
+
+      const response = await fetch(
+        `${BASE_URL}/${id}/analyzedInstructions?${params}`
+      );
+      const data = await handleResponse(response);
+      
+      // Return first instruction set if exists, otherwise empty array
+      return data[0]?.steps || [];
+    } catch (error) {
+      console.error('Error fetching analyzed instructions:', error);
       throw error;
     }
   }

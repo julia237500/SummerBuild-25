@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { userRecipesService } from '../services/userRecipesService';
+import { recipeService } from '../services/recipeService';
 import './MyRecipes.css';
 
 export default function MyRecipes() {
@@ -16,7 +16,7 @@ export default function MyRecipes() {
   const loadRecipes = async () => {
     try {
       setLoading(true);
-      const data = await userRecipesService.getUserRecipes();
+      const data = await recipeService.getUserRecipes();
       setRecipes(data);
     } catch (err) {
       setError('Failed to load recipes. Please try again.');
@@ -29,7 +29,7 @@ export default function MyRecipes() {
   const handleDelete = async (recipeId) => {
     if (window.confirm('Are you sure you want to delete this recipe?')) {
       try {
-        await userRecipesService.deleteRecipe(recipeId);
+        await recipeService.deleteRecipe(recipeId);
         setRecipes(recipes.filter(recipe => recipe.id !== recipeId));
       } catch (err) {
         setError('Failed to delete recipe. Please try again.');
@@ -69,31 +69,25 @@ export default function MyRecipes() {
         <div className="recipes-grid">
           {recipes.map((recipe) => (
             <div key={recipe.id} className="recipe-card">
-              <div className="recipe-image-container">
-                {recipe.image_url ? (
-                  <img src={recipe.image_url} alt={recipe.title} />
-                ) : (
-                  <div className="placeholder-image">No Image</div>
-                )}
-              </div>
+              {recipe.image_url && (
+                <img
+                  src={recipe.image_url}
+                  alt={recipe.name}
+                  className="recipe-image"
+                />
+              )}
               <div className="recipe-content">
-                <h3>{recipe.title}</h3>
-                <p className="recipe-description">{recipe.description}</p>
+                <h3>{recipe.name}</h3>
+                <p>{recipe.description}</p>
                 <div className="recipe-meta">
-                  <span>Prep: {recipe.prep_time} mins</span>
-                  <span>Cook: {recipe.cook_time} mins</span>
+                  <span>Prep: {recipe.prep_time_minutes} min</span>
+                  <span>Cook: {recipe.cook_time_minutes} min</span>
                 </div>
                 <div className="recipe-actions">
-                  <button
-                    onClick={() => handleEdit(recipe.id)}
-                    className="edit-btn"
-                  >
+                  <button onClick={() => handleEdit(recipe.id)} className="edit-btn">
                     Edit
                   </button>
-                  <button
-                    onClick={() => handleDelete(recipe.id)}
-                    className="delete-btn"
-                  >
+                  <button onClick={() => handleDelete(recipe.id)} className="delete-btn">
                     Delete
                   </button>
                 </div>

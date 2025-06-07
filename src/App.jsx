@@ -10,6 +10,7 @@ import RecipeDetails from './components/RecipeDetails';
 import MyRecipes from './components/MyRecipes';
 import RecipeForm from './components/RecipeForm';
 import Favorites from './components/Favorites';
+import StorageTest from './components/StorageTest';
 import './App.css';
 
 function App() {
@@ -102,6 +103,16 @@ function App() {
               element={
                 session ? (
                   <Favorites />
+                ) : (
+                  <Navigate to="/signin" replace />
+                )
+              }
+            />
+            <Route
+              path="/storage-test"
+              element={
+                session ? (
+                  <StorageTest />
                 ) : (
                   <Navigate to="/signin" replace />
                 )

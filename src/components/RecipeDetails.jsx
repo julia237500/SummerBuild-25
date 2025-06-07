@@ -6,21 +6,26 @@ import './RecipeDetails.css';
 export default function RecipeDetails() {
   const { id } = useParams();
   const [recipe, setRecipe] = useState(null);
+  const [analyzedInstructions, setAnalyzedInstructions] = useState([]);
   const [instructions, setInstructions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [servings, setServings] = useState(1);
+  const [measurementSystem, setMeasurementSystem] = useState('Metric');
 
   useEffect(() => {
     const fetchRecipeDetails = async () => {
       try {
         setLoading(true);
         setError(null);
-        const [recipeData, instructionsData] = await Promise.all([
+        const [recipeData, instructionsData, analyzedData] = await Promise.all([
           spoonacularApi.getRecipeById(id),
-          spoonacularApi.getRecipeInstructions(id)
+          spoonacularApi.getRecipeInstructions(id),
+          spoonacularApi.getAnalyzedInstructions(id)
         ]);
         setRecipe(recipeData);
         setInstructions(instructionsData);
+        setAnalyzedInstructions(analyzedData);
       } catch (err) {
         setError('Failed to load recipe details. Please try again.');
         console.error(err);
@@ -32,6 +37,13 @@ export default function RecipeDetails() {
     fetchRecipeDetails();
   }, [id]);
 
+  const handleServingChange = (change) => {
+    const newServings = servings + change;
+    if (newServings > 0) {
+      setServings(newServings);
+    }
+  };
+
   if (loading) return <div className="loading">Loading recipe details...</div>;
   if (error) return <div className="error-message">{error}</div>;
   if (!recipe) return <div className="error-message">Recipe not found</div>;
@@ -39,88 +51,150 @@ export default function RecipeDetails() {
   return (
     <div className="recipe-details">
       <div className="recipe-header">
-        <h1>{recipe.title}</h1>
-        <img src={recipe.image} alt={recipe.title} className="recipe-main-image" />
-        
-        <div className="recipe-meta">
-          <div className="meta-item">
-            <span className="meta-label">Ready in:</span>
-            <span className="meta-value">{recipe.readyInMinutes} minutes</span>
+        <div className="recipe-image-container">
+          <img src={recipe.image} alt={recipe.title} className="recipe-main-image" />
+          <div className="recipe-rating">
+            <span className="star-icon">★</span>
+            <span>{recipe.spoonacularScore ? (recipe.spoonacularScore / 20).toFixed(1) : '4.9'}</span>
           </div>
-          <div className="meta-item">
-            <span className="meta-label">Servings:</span>
-            <span className="meta-value">{recipe.servings}</span>
+          <div className="recipe-actions">
+            <button className="action-btn download">
+              <span>↓</span>
+            </button>
+            <button className="action-btn favorite">
+              <span>♥</span>
+            </button>
           </div>
-          {recipe.healthScore && (
-            <div className="meta-item">
-              <span className="meta-label">Health Score:</span>
-              <span className="meta-value">{recipe.healthScore}</span>
-            </div>
-          )}
         </div>
 
-        {recipe.diets?.length > 0 && (
-          <div className="recipe-tags">
-            {recipe.diets.map((diet) => (
-              <span key={diet} className="tag">
-                {diet}
-              </span>
-            ))}
+        <div className="recipe-title-section">
+          <h1>{recipe.title}</h1>
+          <p className="recipe-description">{recipe.summary}</p>
+          
+          <div className="recipe-meta">
+            <div className="meta-item">
+              <span className="meta-icon">⏱</span>
+              <span>Preparation time</span>
+              <strong>{recipe.readyInMinutes} min</strong>
+            </div>
+            <div className="meta-item">
+              <span className="meta-icon">📊</span>
+              <span>Level</span>
+              <strong>{recipe.difficulty || 'Beginner'}</strong>
+            </div>
           </div>
-        )}
+        </div>
       </div>
 
       <div className="recipe-content">
         <section className="ingredients-section">
-          <h2>Ingredients</h2>
-          <ul className="ingredients-list">
+          <div className="section-header">
+            <h2>Ingredients</h2>
+            <div className="measurement-toggle">
+              <button 
+                className={measurementSystem === 'Metric' ? 'active' : ''}
+                onClick={() => setMeasurementSystem('Metric')}
+              >
+                Metric
+              </button>
+              <button 
+                className={measurementSystem === 'US' ? 'active' : ''}
+                onClick={() => setMeasurementSystem('US')}
+              >
+                US
+              </button>
+            </div>
+          </div>
+
+          <div className="servings-control">
+            <span>Servings</span>
+            <button onClick={() => handleServingChange(-1)}>−</button>
+            <span>{servings}</span>
+            <button onClick={() => handleServingChange(1)}>+</button>
+          </div>
+
+          <div className="ingredients-list">
             {recipe.extendedIngredients?.map((ingredient) => (
-              <li key={ingredient.id} className="ingredient-item">
-                <span className="ingredient-amount">
-                  {ingredient.amount} {ingredient.unit}
-                </span>
+              <div key={ingredient.id} className="ingredient-item">
+                <div className="ingredient-icon">
+                  <img 
+                    src={`https://spoonacular.com/cdn/ingredients_100x100/${ingredient.image}`}
+                    alt={ingredient.name}
+                  />
+                </div>
                 <span className="ingredient-name">{ingredient.name}</span>
-              </li>
+                <span className="ingredient-amount">
+                  {measurementSystem === 'Metric' 
+                    ? `${(ingredient.measures.metric.amount * servings).toFixed(1)}${ingredient.measures.metric.unitShort}`
+                    : `${(ingredient.measures.us.amount * servings).toFixed(1)}${ingredient.measures.us.unitShort}`
+                  }
+                </span>
+              </div>
             ))}
-          </ul>
+          </div>
         </section>
 
-        <section className="instructions-section">
-          <h2>Instructions</h2>
-          {instructions.length > 0 ? (
-            instructions.map((instruction) => (
-              <div key={instruction.name || 'main'} className="instruction-group">
-                {instruction.name && <h3>{instruction.name}</h3>}
-                <ol className="instructions-list">
-                  {instruction.steps.map((step) => (
-                    <li key={step.number} className="instruction-step">
-                      <span className="step-number">{step.number}</span>
-                      <span className="step-text">{step.step}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            ))
+        <section className="directions-section">
+          <h2>Directions</h2>
+          {analyzedInstructions.length > 0 ? (
+            <div className="steps-list">
+              {analyzedInstructions.map((step, index) => (
+                <div key={index} className="step-group">
+                  <h3>Step {step.number}</h3>
+                  
+                  {/* Equipment needed for this step */}
+                  {step.equipment && step.equipment.length > 0 && (
+                    <div className="step-equipment">
+                      <h4>Equipment Needed:</h4>
+                      <div className="equipment-list">
+                        {step.equipment.map((item, i) => (
+                          <div key={i} className="equipment-item">
+                            <img 
+                              src={`https://spoonacular.com/cdn/equipment_100x100/${item.image}`}
+                              alt={item.name}
+                            />
+                            <span>{item.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Ingredients used in this step */}
+                  {step.ingredients && step.ingredients.length > 0 && (
+                    <div className="step-ingredients">
+                      <h4>Ingredients Used:</h4>
+                      <div className="ingredients-list">
+                        {step.ingredients.map((ingredient, i) => (
+                          <div key={i} className="step-ingredient">
+                            <img 
+                              src={`https://spoonacular.com/cdn/ingredients_100x100/${ingredient.image}`}
+                              alt={ingredient.name}
+                            />
+                            <span>{ingredient.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Step instruction */}
+                  <p className="step-instruction">{step.step}</p>
+                  
+                  {/* Optional timing information */}
+                  {step.length && (
+                    <div className="step-timing">
+                      <span className="time-icon">⏱</span>
+                      <span>{step.length.number} {step.length.unit}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           ) : (
             <p className="no-instructions">No detailed instructions available.</p>
           )}
         </section>
-
-        {recipe.nutrition && (
-          <section className="nutrition-section">
-            <h2>Nutrition Information</h2>
-            <div className="nutrition-grid">
-              {recipe.nutrition.nutrients?.slice(0, 8).map((nutrient) => (
-                <div key={nutrient.name} className="nutrient-item">
-                  <span className="nutrient-name">{nutrient.name}</span>
-                  <span className="nutrient-value">
-                    {nutrient.amount}{nutrient.unit}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
       </div>
     </div>
   );

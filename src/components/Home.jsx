@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { spoonacularApi } from '../services/spoonacularApi';
+import RecipeCard from './RecipeCard';
 import './Home.css';
 
 export default function Home() {
@@ -54,29 +55,18 @@ export default function Home() {
         <h2>Featured Recipes</h2>
         <div className="recipes-grid">
           {randomRecipes.map((recipe) => (
-            <div
+            <RecipeCard
               key={recipe.id}
-              className="recipe-card"
-              onClick={() => handleRecipeClick(recipe.id)}
-              role="button"
-              tabIndex={0}
-            >
-              <div className="recipe-image-container">
-                <img src={recipe.image} alt={recipe.title} />
-                <div className="recipe-time">
-                  <span>{recipe.readyInMinutes} mins</span>
-                </div>
-              </div>
-              <div className="recipe-info">
-                <h3>{recipe.title}</h3>
-                <div className="recipe-meta">
-                  <span>{recipe.servings} servings</span>
-                  {recipe.healthScore && (
-                    <span>Health Score: {recipe.healthScore}</span>
-                  )}
-                </div>
-              </div>
-            </div>
+              recipe={{
+                id: recipe.id,
+                title: recipe.title,
+                image_url: recipe.image,
+                cooking_time: recipe.readyInMinutes,
+                calories: recipe.nutrition?.nutrients?.find(n => n.name === 'Calories')?.amount || '562',
+                protein: recipe.nutrition?.nutrients?.find(n => n.name === 'Protein')?.amount + 'g' || '13g',
+                carbs: recipe.nutrition?.nutrients?.find(n => n.name === 'Carbohydrates')?.amount + 'g' || '22g'
+              }}
+            />
           ))}
         </div>
       </section>
@@ -85,29 +75,18 @@ export default function Home() {
         <h2>Popular Now</h2>
         <div className="recipes-grid">
           {popularRecipes.map((recipe) => (
-            <div
+            <RecipeCard
               key={recipe.id}
-              className="recipe-card"
-              onClick={() => handleRecipeClick(recipe.id)}
-              role="button"
-              tabIndex={0}
-            >
-              <div className="recipe-image-container">
-                <img src={recipe.image} alt={recipe.title} />
-                <div className="recipe-time">
-                  <span>{recipe.readyInMinutes} mins</span>
-                </div>
-              </div>
-              <div className="recipe-info">
-                <h3>{recipe.title}</h3>
-                <div className="recipe-meta">
-                  <span>{recipe.servings} servings</span>
-                  {recipe.healthScore && (
-                    <span>Health Score: {recipe.healthScore}</span>
-                  )}
-                </div>
-              </div>
-            </div>
+              recipe={{
+                id: recipe.id,
+                title: recipe.title,
+                image_url: recipe.image,
+                cooking_time: recipe.readyInMinutes,
+                calories: recipe.nutrition?.nutrients?.find(n => n.name === 'Calories')?.amount || '562',
+                protein: recipe.nutrition?.nutrients?.find(n => n.name === 'Protein')?.amount + 'g' || '13g',
+                carbs: recipe.nutrition?.nutrients?.find(n => n.name === 'Carbohydrates')?.amount + 'g' || '22g'
+              }}
+            />
           ))}
         </div>
       </section>
