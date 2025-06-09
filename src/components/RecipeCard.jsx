@@ -8,12 +8,14 @@ import './RecipeCard.css';
 export default function RecipeCard({ recipe, onFavoriteToggle, showActions = true }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(recipe.is_favorite);
 
   const {
     id,
-    name,
+    title,
     description,
     image_url,
+    cooking_time,
     prep_time_minutes,
     cook_time_minutes,
     difficulty,
@@ -23,11 +25,15 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
     is_favorite,
     average_rating,
     total_ratings,
-    dietary_restrictions = []
+    dietary_restrictions = [],
+    calories,
+    protein,
+    carbs
   } = recipe;
 
-  const totalTime = prep_time_minutes + cook_time_minutes;
-
+  const totalTime = prep_time_minutes && cook_time_minutes 
+    ? prep_time_minutes + cook_time_minutes 
+    : cooking_time;
   const handleFavoriteClick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -35,9 +41,10 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
     try {
       setIsLoading(true);
       setError(null);
-      await recipeService.toggleFavorite(id);
+      const newFavoriteStatus = await recipeService.toggleFavorite(id);
+      setIsFavorite(newFavoriteStatus);
       if (onFavoriteToggle) {
-        onFavoriteToggle(id);
+        onFavoriteToggle(id, newFavoriteStatus);
       }
     } catch (err) {
       setError('Failed to update favorite status');
@@ -46,104 +53,98 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
       setIsLoading(false);
     }
   };
-
   const getDifficultyColor = (level) => {
     const colors = {
-      easy: '#2ecc71',
-      medium: '#f1c40f',
-      hard: '#e67e22',
-      expert: '#e74c3c'
+      easy: 'bg-green-500',
+      medium: 'bg-yellow-500',
+      hard: 'bg-red-500'
     };
-    return colors[level] || '#95a5a6';
-  };
-
-  const formatTime = (minutes) => {
-    if (minutes < 60) return `${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+    return colors[level?.toLowerCase()] || 'bg-gray-500';
   };
 
   return (
     <Link to={`/recipe/${id}`} className="recipe-card">
-      <div className="recipe-card-image">
+      <div className="recipe-image-container">
         {image_url ? (
-          <img src={image_url} alt={name} loading="lazy" />
+          <img src={image_url} alt={title} className="recipe-image" />
         ) : (
-          <div className="recipe-card-placeholder">
-            <GiCookingPot />
+          <div className="recipe-image-placeholder">
+            <GiCookingPot className="placeholder-icon" />
           </div>
         )}
-        {is_private && (
-          <div className="recipe-privacy-badge">
-            <FaLock />
+        {showActions && (
+          <button
+            onClick={handleFavoriteClick}
+            disabled={isLoading}
+            className={`favorite-btn ${isFavorite ? 'active' : ''} ${isLoading ? 'loading' : ''}`}
+            title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            <FaHeart />
+          </button>
+        )}
+        {error && (
+          <div className="error-message" role="alert">
+            {error}
+          </div>
+        )}        {is_private && (
+          <div className="absolute top-2 left-2 bg-gray-800 bg-opacity-75 p-1 rounded-full">
+            <FaLock className="text-white" />
           </div>
         )}
       </div>
 
-      <div className="recipe-card-content">
-        <div className="recipe-card-header">
-          <h3>{name}</h3>
-          {showActions && (
-            <button
-              className={`favorite-btn ${is_favorite ? 'active' : ''} ${isLoading ? 'loading' : ''}`}
-              onClick={handleFavoriteClick}
-              disabled={isLoading}
-              aria-label={is_favorite ? 'Remove from favorites' : 'Add to favorites'}
-            >
-              <FaHeart />
-            </button>
-          )}
-        </div>
-
-        <p className="recipe-description">{description}</p>
-
-        <div className="recipe-meta">
+      <div className="recipe-content">
+        <h3 className="recipe-title">{title}</h3>
+        {description && (
+          <p className="recipe-description">{description}</p>
+        )}        <div className="recipe-meta">
           <div className="recipe-stat">
-            <FaClock />
-            <span>{formatTime(totalTime)}</span>
+            <FaClock className="icon" />
+            <span>{totalTime} mins</span>
           </div>
-          <div className="recipe-stat">
-            <FaUtensils />
-            <span>{cuisine_type ? cuisine_type.replace('_', ' ') : 'Various'}</span>
-          </div>
-          {calories_per_serving && (
+          {cuisine_type && (
             <div className="recipe-stat">
-              <span className="calories">{calories_per_serving}</span>
-              <span>cal</span>
+              <FaUtensils className="icon" />
+              <span>{cuisine_type.replace('_', ' ')}</span>
+            </div>
+          )}
+          {(calories_per_serving || calories) && (
+            <div className="recipe-stat">
+              <GiCookingPot className="icon" />
+              <span>{calories_per_serving || calories} cal</span>
             </div>
           )}
         </div>
 
         <div className="recipe-footer">
           <div className="recipe-badges">
-            <span 
-              className="difficulty-badge"
-              style={{ backgroundColor: getDifficultyColor(difficulty) }}
-            >
-              {difficulty}
-          </span>
-            {dietary_restrictions.map(restriction => (
-              <span 
-                key={restriction} 
-                className="dietary-badge"
-              >
+            {difficulty && (
+              <span className={`difficulty-badge ${getDifficultyColor(difficulty)}`}>
+                {difficulty}
+              </span>
+            )}
+            {dietary_restrictions?.map((restriction) => (
+              <span key={restriction} className="dietary-badge">
                 {restriction.replace('_', ' ')}
               </span>
             ))}
           </div>
 
-          {average_rating > 0 && (
-            <div className="recipe-rating">
-              <FaStar />
-              <span>{average_rating.toFixed(1)}</span>
-              <span className="rating-count">({total_ratings})</span>
+          {showActions && (
+            <div className="recipe-actions">
+              {average_rating && (
+                <div className="recipe-rating">
+                  <FaStar />
+                  <span>{average_rating.toFixed(1)}</span>
+                  {total_ratings && (
+                    <span className="rating-count">({total_ratings})</span>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        {error && <div className="error-message">{error}</div>}
+          )}        </div>
       </div>
     </Link>
   );
-} 
+}

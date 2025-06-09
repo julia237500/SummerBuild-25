@@ -1,7 +1,7 @@
 import { loadStripe } from '@stripe/stripe-js';
 
-// Replace with your Stripe publishable key
-const stripePromise = loadStripe('your_publishable_key');
+// Initialize Stripe with the public key from environment variables
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const PLAN_PRICES = {
   premium: {
