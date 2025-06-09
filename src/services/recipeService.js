@@ -11,9 +11,10 @@ export const recipeService = {
           categories (*),
           profiles!recipes_user_id_fkey (
             id,
-            username,
+            email,
             full_name,
-            avatar_url
+            avatar_url,
+            cooking_level
           )
         `)
         .order('created_at', { ascending: false });
@@ -39,9 +40,10 @@ export const recipeService = {
           categories (*),
           profiles!recipes_user_id_fkey (
             id,
-            username,
+            email,
             full_name,
-            avatar_url
+            avatar_url,
+            cooking_level
           )
         `)
         .eq('user_id', user.id)
@@ -65,14 +67,15 @@ export const recipeService = {
           categories (*),
           profiles!recipes_user_id_fkey (
             id,
-            username,
+            email,
             full_name,
-            avatar_url
+            avatar_url,
+            cooking_level
           )
         `)
         .eq('id', id)
         .single();
-
+      
       if (checkOwnership) {
         const { data: { user } } = await supabase.auth.getUser();
         query = query.eq('user_id', user.id);
@@ -106,7 +109,6 @@ export const recipeService = {
           .from('profiles')
           .insert([{
             id: user.id,
-            username: user.email.split('@')[0], // Default username from email
             email: user.email,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
@@ -155,9 +157,10 @@ export const recipeService = {
           categories (*),
           profiles!recipes_user_id_fkey (
             id,
-            username,
+            email,
             full_name,
-            avatar_url
+            avatar_url,
+            cooking_level
           )
         `);
       
@@ -189,8 +192,8 @@ export const recipeService = {
             .replace(/(^-|-$)/g, '')
         : undefined;
 
-      const { data, error } = await supabase
-        .from('recipes')
+    const { data, error } = await supabase
+      .from('recipes')
         .update({
           name: updates.name,
           ...(slug && { slug }), // Only include slug if name was updated
@@ -211,21 +214,22 @@ export const recipeService = {
           category_id: updates.category_id || null,
           updated_at: new Date().toISOString()
         })
-        .eq('id', id)
+      .eq('id', id)
         .eq('user_id', user.id) // Ensure user owns the recipe
         .select(`
           *,
           categories (*),
           profiles!recipes_user_id_fkey (
             id,
-            username,
+            email,
             full_name,
-            avatar_url
+            avatar_url,
+            cooking_level
           )
         `);
-      
-      if (error) throw error;
-      return data[0];
+    
+    if (error) throw error;
+    return data[0];
     } catch (error) {
       console.error('Error updating recipe:', error);
       throw error;
@@ -239,14 +243,14 @@ export const recipeService = {
       if (userError) throw userError;
       if (!user) throw new Error('User not authenticated');
 
-      const { error } = await supabase
-        .from('recipes')
-        .delete()
+    const { error } = await supabase
+      .from('recipes')
+      .delete()
         .eq('id', id)
         .eq('user_id', user.id); // Ensure user owns the recipe
-      
-      if (error) throw error;
-      return true;
+    
+    if (error) throw error;
+    return true;
     } catch (error) {
       console.error('Error deleting recipe:', error);
       throw error;
@@ -285,9 +289,10 @@ export const recipeService = {
             categories (*),
             profiles!recipes_user_id_fkey (
               id,
-              username,
+              email,
               full_name,
-              avatar_url
+              avatar_url,
+              cooking_level
             )
           )
         `)

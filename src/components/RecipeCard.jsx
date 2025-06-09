@@ -126,7 +126,7 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
             )}
             {dietary_restrictions?.map((restriction) => (
               <span key={restriction} className="dietary-badge">
-                {restriction}
+                {restriction.replace('_', ' ')}
               </span>
             ))}
           </div>
