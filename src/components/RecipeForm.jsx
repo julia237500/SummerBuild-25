@@ -264,66 +264,66 @@ export default function RecipeForm() {
       <form onSubmit={handleSubmit} className="recipe-form">
         <div className="form-section">
           <h2>Basic Information</h2>
-          <div className="form-group">
+        <div className="form-group">
             <label htmlFor="name">Recipe Name*</label>
-            <input
-              type="text"
+          <input
+            type="text"
               id="name"
               name="name"
               value={recipe.name}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            value={recipe.description}
+            onChange={handleChange}
+            rows="3"
+          />
+        </div>
+
+          <div className="form-row">
+        <div className="form-group">
+              <label htmlFor="prep_time_minutes">Prep Time (minutes)*</label>
+            <input
+              type="number"
+                id="prep_time_minutes"
+                name="prep_time_minutes"
+                value={recipe.prep_time_minutes}
               onChange={handleChange}
               required
+              min="0"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              name="description"
-              value={recipe.description}
-              onChange={handleChange}
-              rows="3"
-            />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="prep_time_minutes">Prep Time (minutes)*</label>
-              <input
-                type="number"
-                id="prep_time_minutes"
-                name="prep_time_minutes"
-                value={recipe.prep_time_minutes}
-                onChange={handleChange}
-                required
-                min="0"
-              />
-            </div>
-
-            <div className="form-group">
               <label htmlFor="cook_time_minutes">Cook Time (minutes)*</label>
-              <input
-                type="number"
+            <input
+              type="number"
                 id="cook_time_minutes"
                 name="cook_time_minutes"
                 value={recipe.cook_time_minutes}
-                onChange={handleChange}
-                required
-                min="0"
-              />
-            </div>
+              onChange={handleChange}
+              required
+              min="0"
+            />
+          </div>
 
-            <div className="form-group">
-              <label htmlFor="servings">Servings*</label>
-              <input
-                type="number"
-                id="servings"
-                name="servings"
-                value={recipe.servings}
-                onChange={handleChange}
-                required
-                min="1"
+          <div className="form-group">
+            <label htmlFor="servings">Servings*</label>
+            <input
+              type="number"
+              id="servings"
+              name="servings"
+              value={recipe.servings}
+              onChange={handleChange}
+              required
+              min="1"
               />
             </div>
 
@@ -540,10 +540,10 @@ export default function RecipeForm() {
 
         <div className="form-section">
           <h2>Additional Information</h2>
-          <div className="form-group">
+        <div className="form-group">
             <label htmlFor="source_url">Source URL</label>
-            <input
-              type="url"
+          <input
+            type="url"
               id="source_url"
               name="source_url"
               value={recipe.source_url}
@@ -570,8 +570,8 @@ export default function RecipeForm() {
                 type="checkbox"
                 name="is_private"
                 checked={recipe.is_private}
-                onChange={handleChange}
-              />
+            onChange={handleChange}
+          />
               Make this recipe private
             </label>
           </div>

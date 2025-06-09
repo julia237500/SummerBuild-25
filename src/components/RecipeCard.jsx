@@ -122,7 +122,7 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
               style={{ backgroundColor: getDifficultyColor(difficulty) }}
             >
               {difficulty}
-            </span>
+          </span>
             {dietary_restrictions.map(restriction => (
               <span 
                 key={restriction} 

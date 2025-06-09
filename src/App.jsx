@@ -15,6 +15,7 @@ import Subscription from './components/Subscription';
 import SubscriptionSuccess from './components/SubscriptionSuccess';
 import PaymentMethods from './components/PaymentMethods';
 import BillingHistory from './components/BillingHistory';
+import Profile from './components/Profile';
 import './App.css';
 
 function App() {
@@ -164,6 +165,7 @@ function App() {
             />
             <Route path="/payment-methods" element={<PaymentMethods />} />
             <Route path="/billing-history" element={<BillingHistory />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
         </main>
       </div>
