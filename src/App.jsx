@@ -15,6 +15,8 @@ import Subscription from './components/Subscription';
 import SubscriptionSuccess from './components/SubscriptionSuccess';
 import PaymentMethods from './components/PaymentMethods';
 import BillingHistory from './components/BillingHistory';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 import './App.css';
 
 function App() {
@@ -175,6 +177,10 @@ function App() {
             />
             <Route path="/payment-methods" element={<PaymentMethods />} />
             <Route path="/billing-history" element={<BillingHistory />} />
+
+            {/* Admin routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
           </Routes>
         </main>
       </div>

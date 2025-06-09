@@ -9,6 +9,8 @@ import RecipeDetail from '../pages/RecipeDetail';
 import RecipeSearch from '../components/RecipeSearch';
 import RecipeDetails from '../components/RecipeDetails';
 import Favorites from '../components/Favorites';
+import AdminLogin from '../pages/AdminLogin';
+import AdminDashboard from '../pages/AdminDashboard';
 
 // Route wrapper for authenticated routes
 const PrivateRoute = ({ children }) => {
@@ -100,8 +102,12 @@ export default function AppRoutes() {
         }
       />
 
+      {/* Admin routes */}
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
       {/* Catch all route - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
-} 
+}
