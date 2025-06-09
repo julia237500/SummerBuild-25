@@ -11,6 +11,10 @@ import MyRecipes from './components/MyRecipes';
 import RecipeForm from './components/RecipeForm';
 import Favorites from './components/Favorites';
 import StorageTest from './components/StorageTest';
+import Subscription from './components/Subscription';
+import SubscriptionSuccess from './components/SubscriptionSuccess';
+import PaymentMethods from './components/PaymentMethods';
+import BillingHistory from './components/BillingHistory';
 import './App.css';
 
 function App() {
@@ -43,6 +47,26 @@ function App() {
               element={
                 session ? (
                   <Home />
+                ) : (
+                  <Navigate to="/signin" replace />
+                )
+              }
+            />
+            <Route
+              path="/subscription"
+              element={
+                session ? (
+                  <Subscription />
+                ) : (
+                  <Navigate to="/signin" replace />
+                )
+              }
+            />
+            <Route
+              path="/subscription/success"
+              element={
+                session ? (
+                  <SubscriptionSuccess />
                 ) : (
                   <Navigate to="/signin" replace />
                 )
@@ -138,6 +162,8 @@ function App() {
                 )
               }
             />
+            <Route path="/payment-methods" element={<PaymentMethods />} />
+            <Route path="/billing-history" element={<BillingHistory />} />
           </Routes>
         </main>
       </div>

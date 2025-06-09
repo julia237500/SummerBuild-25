@@ -46,7 +46,7 @@ export default function Home() {
     <div className="home">
       <section className="hero-section">
         <div className="hero-content">
-          <h1>Discover Delicious Recipes</h1>
+          <h1>Discover <strong>Delicious</strong> Recipes</h1>
           <p>Find and save your favorite recipes from around the world</p>
         </div>
       </section>
@@ -59,12 +59,19 @@ export default function Home() {
               key={recipe.id}
               recipe={{
                 id: recipe.id,
-                title: recipe.title,
+                name: recipe.title,
+                description: recipe.summary,
                 image_url: recipe.image,
-                cooking_time: recipe.readyInMinutes,
-                calories: recipe.nutrition?.nutrients?.find(n => n.name === 'Calories')?.amount || '562',
-                protein: recipe.nutrition?.nutrients?.find(n => n.name === 'Protein')?.amount + 'g' || '13g',
-                carbs: recipe.nutrition?.nutrients?.find(n => n.name === 'Carbohydrates')?.amount + 'g' || '22g'
+                prep_time_minutes: Math.floor(recipe.readyInMinutes / 2),
+                cook_time_minutes: Math.ceil(recipe.readyInMinutes / 2),
+                difficulty: 'medium',
+                cuisine_type: recipe.cuisines?.[0] || 'Various',
+                calories_per_serving: recipe.nutrition?.nutrients?.find(n => n.name === 'Calories')?.amount || '562',
+                is_private: false,
+                is_favorite: false,
+                average_rating: recipe.spoonacularScore ? (recipe.spoonacularScore / 20) : 4.5,
+                total_ratings: recipe.aggregateLikes || 0,
+                dietary_restrictions: recipe.diets || []
               }}
             />
           ))}
@@ -79,12 +86,19 @@ export default function Home() {
               key={recipe.id}
               recipe={{
                 id: recipe.id,
-                title: recipe.title,
+                name: recipe.title,
+                description: recipe.summary,
                 image_url: recipe.image,
-                cooking_time: recipe.readyInMinutes,
-                calories: recipe.nutrition?.nutrients?.find(n => n.name === 'Calories')?.amount || '562',
-                protein: recipe.nutrition?.nutrients?.find(n => n.name === 'Protein')?.amount + 'g' || '13g',
-                carbs: recipe.nutrition?.nutrients?.find(n => n.name === 'Carbohydrates')?.amount + 'g' || '22g'
+                prep_time_minutes: Math.floor(recipe.readyInMinutes / 2),
+                cook_time_minutes: Math.ceil(recipe.readyInMinutes / 2),
+                difficulty: 'medium',
+                cuisine_type: recipe.cuisines?.[0] || 'Various',
+                calories_per_serving: recipe.nutrition?.nutrients?.find(n => n.name === 'Calories')?.amount || '562',
+                is_private: false,
+                is_favorite: false,
+                average_rating: recipe.spoonacularScore ? (recipe.spoonacularScore / 20) : 4.5,
+                total_ratings: recipe.aggregateLikes || 0,
+                dietary_restrictions: recipe.diets || []
               }}
             />
           ))}

@@ -105,7 +105,7 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
           </div>
           <div className="recipe-stat">
             <FaUtensils />
-            <span>{cuisine_type.replace('_', ' ')}</span>
+            <span>{cuisine_type ? cuisine_type.replace('_', ' ') : 'Various'}</span>
           </div>
           {calories_per_serving && (
             <div className="recipe-stat">

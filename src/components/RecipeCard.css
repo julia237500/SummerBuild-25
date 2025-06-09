@@ -4,7 +4,7 @@
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
   text-decoration: none;
   color: inherit;
@@ -14,7 +14,7 @@
 
 .recipe-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
 }
 
 .recipe-card-image {
@@ -108,6 +108,7 @@
 
 .favorite-btn.active {
   opacity: 1;
+  color: #e74c3c;
 }
 
 .favorite-btn.loading {
@@ -147,12 +148,12 @@
 }
 
 .recipe-stat svg {
-  color: #3498db;
+  color: #4CAF50;
 }
 
 .recipe-stat .calories {
   font-weight: 600;
-  color: #e67e22;
+  color: #4CAF50;
 }
 
 .recipe-footer {
@@ -184,15 +185,15 @@
 }
 
 .dietary-badge {
-  background-color: #f0f2f5;
-  color: #2c3e50;
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
 }
 
 .recipe-rating {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  color: #f1c40f;
+  color: #4CAF50;
   font-weight: 600;
 }
 

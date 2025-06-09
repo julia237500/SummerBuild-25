@@ -10,6 +10,25 @@ const handleResponse = async (response) => {
 };
 
 export const spoonacularApi = {
+  // Autocomplete search suggestions
+  getAutocompleteSuggestions: async (query, number = 5) => {
+    try {
+      const params = new URLSearchParams({
+        apiKey: API_KEY,
+        query: query,
+        number: number
+      });
+
+      const response = await fetch(
+        `https://api.spoonacular.com/recipes/autocomplete?${params}`
+      );
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Error getting autocomplete suggestions:', error);
+      throw error;
+    }
+  },
+
   // Search recipes with various parameters
   searchRecipes: async (query, sortBy = '', limit = 12) => {
     try {
@@ -105,6 +124,24 @@ export const spoonacularApi = {
       return data[0]?.steps || [];
     } catch (error) {
       console.error('Error fetching analyzed instructions:', error);
+      throw error;
+    }
+  },
+
+  // Get ingredient substitutes
+  getIngredientSubstitutes: async (ingredientName) => {
+    try {
+      const params = new URLSearchParams({
+        apiKey: API_KEY,
+        ingredientName: ingredientName
+      });
+
+      const response = await fetch(
+        `https://api.spoonacular.com/food/ingredients/substitutes?${params}`
+      );
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Error getting ingredient substitutes:', error);
       throw error;
     }
   }

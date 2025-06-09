@@ -87,6 +87,10 @@ export default function Navbar() {
               </div>
             )}
           </div>
+          <Link to="/subscription" className="nav-link premium-link" onClick={closeDropdowns}>
+            SUBSCRIPTION
+            <span className="premium-badge">PRO</span>
+          </Link>
           <Link to="/service" className="nav-link" onClick={closeDropdowns}>SERVICE</Link>
           <Link to="/blog" className="nav-link" onClick={closeDropdowns}>BLOG</Link>
           <Link to="/contact" className="nav-link" onClick={closeDropdowns}>CONTACT</Link>

@@ -15,6 +15,7 @@
   position: relative;
   border-radius: 20px;
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
 }
 
 .recipe-main-image {
@@ -33,10 +34,11 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
 }
 
 .star-icon {
-  color: #FFD700;
+  color: #4CAF50;
 }
 
 .recipe-actions {
@@ -57,16 +59,20 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: all 0.2s;
+  color: #4CAF50;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
 }
 
 .action-btn:hover {
   transform: scale(1.1);
+  background: #4CAF50;
+  color: white;
 }
 
 .recipe-title-section h1 {
   font-size: 2.5rem;
-  color: #333;
+  color: #2c3e50;
   margin-bottom: 1rem;
 }
 
@@ -90,6 +96,7 @@
 .meta-icon {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
+  color: #4CAF50;
 }
 
 .meta-item span {
@@ -98,7 +105,7 @@
 }
 
 .meta-item strong {
-  color: #333;
+  color: #4CAF50;
   font-size: 1.1rem;
 }
 
@@ -117,12 +124,12 @@
 
 .section-header h2 {
   font-size: 1.5rem;
-  color: #333;
+  color: #2c3e50;
 }
 
 .measurement-toggle {
   display: flex;
-  background: #f5f5f5;
+  background: rgba(76, 175, 80, 0.1);
   border-radius: 20px;
   padding: 0.25rem;
 }
@@ -133,7 +140,8 @@
   background: none;
   border-radius: 20px;
   cursor: pointer;
-  color: #666;
+  color: #4CAF50;
+  transition: all 0.2s;
 }
 
 .measurement-toggle button.active {
@@ -308,6 +316,12 @@
 
 .time-icon {
   color: #4CAF50;
+}
+
+.substitutes-section {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #eee;
 }
 
 @media (max-width: 1024px) {

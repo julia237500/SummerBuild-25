@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { spoonacularApi } from '../services/spoonacularApi';
+import IngredientSubstitutes from './IngredientSubstitutes';
 import './RecipeDetails.css';
 
 export default function RecipeDetails() {
@@ -194,6 +195,10 @@ export default function RecipeDetails() {
           ) : (
             <p className="no-instructions">No detailed instructions available.</p>
           )}
+        </section>
+
+        <section className="substitutes-section">
+          <IngredientSubstitutes />
         </section>
       </div>
     </div>
