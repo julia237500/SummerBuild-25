@@ -11,12 +11,13 @@ export default function SignIn() {
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
+    e.preventDefault();    try {
       setError(null);
       setLoading(true);
-      await signIn({ email, password });
-      navigate('/'); // Redirect to home page after successful login
+      const { user } = await signIn({ email, password });
+      if (user) {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.message);
     } finally {
