@@ -4,6 +4,7 @@ import { FaClock, FaUtensils, FaHeart, FaStar, FaLock } from 'react-icons/fa';
 import { GiCookingPot } from 'react-icons/gi';
 import { recipeService } from '../services/recipeService';
 import './RecipeCard.css';
+import axios from 'axios';
 
 export default function RecipeCard({ recipe, onFavoriteToggle, showActions = true }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -148,3 +149,11 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
     </Link>
   );
 }
+
+
+const handleFavourite = async () => {
+  await axios.post('/api/favourites', { user_id, recipe_id: recipe.id });
+  // Optionally update UI
+};
+// ...in your render:
+<button onClick={handleFavourite}>Favourite</button>

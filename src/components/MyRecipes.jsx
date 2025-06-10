@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { recipeService } from '../services/recipeService';
 import './MyRecipes.css';
 
+
 export default function MyRecipes() {
   const navigate = useNavigate();
   const [recipes, setRecipes] = useState([]);
@@ -99,3 +100,4 @@ export default function MyRecipes() {
     </div>
   );
 } 
+

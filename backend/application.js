@@ -25,3 +25,7 @@ app.get('/', resetRecipeTable);
 app.listen(5000, () => {
   console.log('Backend running on http://localhost:5000');
 });
+
+
+const favouritesRoutes = require('./routes/favourites');
+app.use('/api/favourites', favouritesRoutes);
