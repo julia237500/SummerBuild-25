@@ -588,31 +588,7 @@ export default function RecipeForm() {
           <button type="submit" className="submit-btn" disabled={loading}>
             {loading ? 'Saving...' : isEditing ? 'Update Recipe' : 'Create Recipe'}
           </button>
-        </div>
-      </form>
+        </div>      </form>
     </div>
   );
-} 
-
-const [nutrition, setNutrition] = useState(null);
-
-// After successful recipe creation:
-setNutrition({
-  calories: response.data[0].calories,
-  protein: response.data[0].protein,
-  fat: response.data[0].fat,
-  carbs: response.data[0].carbs,
-});
-
-// ...in your render/return:
-{nutrition && (
-  <div>
-    <h4>Nutrition Info</h4>
-    <ul>
-      <li>Calories: {nutrition.calories}</li>
-      <li>Protein: {nutrition.protein}g</li>
-      <li>Fat: {nutrition.fat}g</li>
-      <li>Carbs: {nutrition.carbs}g</li>
-    </ul>
-  </div>
-)}
+}

@@ -60,6 +60,7 @@ export const recipeService = {
   // Get recipe by ID (with user check option)
   async getRecipeById(id, checkOwnership = false) {
     try {
+      console.log('RecipeService: Fetching recipe with ID:', id);
       let query = supabase
         .from('recipes')
         .select(`
@@ -82,10 +83,19 @@ export const recipeService = {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.log('RecipeService: Error fetching recipe:', error);
+        if (error.code === 'PGRST116') {
+          // No rows returned
+          return null;
+        }
+        throw error;
+      }
+
+      console.log('RecipeService: Successfully fetched recipe:', data);
       return data;
     } catch (error) {
-      console.error('Error fetching recipe:', error);
+      console.error('RecipeService: Error fetching recipe:', error);
       throw error;
     }
   },

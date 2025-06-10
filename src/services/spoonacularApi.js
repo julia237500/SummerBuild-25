@@ -50,16 +50,29 @@ export const spoonacularApi = {
       throw error;
     }
   },
-
   // Get detailed recipe information by ID
   getRecipeById: async (id) => {
     try {
-      const response = await fetch(
-        `${BASE_URL}/${id}/information?apiKey=${API_KEY}`
-      );
-      return handleResponse(response);
+      console.log('SpoonacularAPI: Fetching recipe with ID:', id);
+      const params = new URLSearchParams({
+        apiKey: API_KEY,
+        includeNutrition: true,
+      });
+
+      const response = await fetch(`${BASE_URL}/${id}/information?${params}`);
+      if (!response.ok) {
+        console.error('SpoonacularAPI: Error response:', response.status, response.statusText);
+        if (response.status === 404) {
+          return null;
+        }
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('SpoonacularAPI: Successfully fetched recipe:', data);
+      return data;
     } catch (error) {
-      console.error('Error fetching recipe details:', error);
+      console.error('SpoonacularAPI: Error fetching recipe:', error);
       throw error;
     }
   },
@@ -145,4 +158,4 @@ export const spoonacularApi = {
       throw error;
     }
   }
-}; 
+};
