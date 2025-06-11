@@ -19,25 +19,81 @@ export const supabaseService = {
       console.error('Error fetching user:', error);
       throw error;
     }
-  },
-
-  // Update user profile
+  },  // Update user profile
   updateProfile: async (profileData) => {
     try {
+      console.log('Updating profile with data:', profileData);
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not found');
+      console.log('Current user:', user);
 
-      const { data, error } = await supabase
+      // Validate required fields
+      if (!profileData.full_name?.trim()) {
+        throw new Error('Name is required');
+      }
+
+      // Validate cooking level
+      const validLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
+      if (!validLevels.includes(profileData.cooking_level)) {
+        console.log('Invalid cooking level, defaulting to Beginner');
+        profileData.cooking_level = 'Beginner';
+      }
+
+      // Ensure clean data structure with only allowed fields
+      // Do not include bio field for now as it's not in the schema yet
+      const updatePayload = {
+        full_name: profileData.full_name.trim(),
+        cooking_level: profileData.cooking_level,
+        avatar_url: profileData.avatar_url || '',
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('Update payload:', updatePayload);
+
+      // Check if profile exists first
+      const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
-        .update(profileData)
+        .select('*')
         .eq('id', user.id)
-        .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      console.log('Existing profile check result:', { existingProfile, checkError });
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Error checking profile:', checkError);
+        throw checkError;
+      }
+
+      let result;
+      // If profile doesn't exist, create it
+      if (!existingProfile) {
+        console.log('Creating new profile');
+        result = await supabase
+          .from('profiles')
+          .insert([{ ...updatePayload, id: user.id }])
+          .select()
+          .single();
+      } else {
+        // If profile exists, update it
+        console.log('Updating existing profile');
+        result = await supabase
+          .from('profiles')
+          .update(updatePayload)
+          .eq('id', user.id)
+          .select()
+          .single();
+      }
+
+      if (result.error) {
+        console.error('Profile operation failed:', result.error);
+        throw new Error(`Profile operation failed: ${result.error.message || result.error.details || 'Unknown error'}`);
+      }
+
+      console.log('Profile updated successfully:', result.data);
+      return result.data;
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('Error in updateProfile:', error);
       throw error;
     }
   },
@@ -72,29 +128,44 @@ export const supabaseService = {
       throw error;
     }
   },
-
   // Get user preferences
   getUserPreferences: async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not found');
-
-      const { data, error } = await supabase
+      if (!user) throw new Error('User not found');      const { data, error } = await supabase
         .from('user_preferences')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
+      if (error && error.code === 'PGRST116') { // No data found
+        // If no preferences exist, create default preferences
+        const defaultPreferences = {
+          user_id: user.id,
+          dietary_preferences: [],
+          allergies: [],
+          favorite_cuisines: []
+        };
+        
+        const { data: newData, error: insertError } = await supabase
+          .from('user_preferences')
+          .insert(defaultPreferences)
+          .select()
+          .single();
+          
+        if (insertError) throw insertError;
+        return newData;
+      }
+
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error fetching preferences:', error);
+      console.error('Error fetching user preferences:', error);
       throw error;
     }
   },
-
   // Update user preferences
-  updatePreferences: async (preferences) => {
+  updateUserPreferences: async (preferences) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not found');
@@ -103,7 +174,8 @@ export const supabaseService = {
         .from('user_preferences')
         .upsert({
           user_id: user.id,
-          ...preferences
+          ...preferences,
+          updated_at: new Date().toISOString()
         })
         .select()
         .single();
@@ -111,90 +183,60 @@ export const supabaseService = {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error updating preferences:', error);
+      console.error('Error updating user preferences:', error);
       throw error;
     }
   },
 
   // Get user activity
-  getUserActivity: async (limit = 10) => {
+  getUserActivity: async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not found');
-
-      const { data, error } = await supabase
+      if (!user) throw new Error('User not found');      const { data, error } = await supabase
         .from('user_activity')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(limit);
+        .limit(10);
 
-      if (error) throw error;
-      return data;
+      if (error && error.code !== 'PGRST116') throw error; // Ignore "no rows" error
+      return data || [];
     } catch (error) {
-      console.error('Error fetching activity:', error);
+      console.error('Error fetching user activity:', error);
       throw error;
     }
   },
-
   // Get notification settings
   getNotificationSettings: async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not found');
-
-      // First, ensure the user profile exists
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-
-      // If profile doesn't exist, create it
-      if (!profile) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([{
-            id: user.id,
-            email: user.email,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }]);
-
-        if (profileError) throw profileError;
-      }
-
-      // Try to get existing notification settings
-      const { data: existingSettings, error: fetchError } = await supabase
+      if (!user) throw new Error('User not found');      const { data, error } = await supabase
         .from('notification_settings')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
-      // If settings exist, return them
-      if (!fetchError && existingSettings) {
-        return existingSettings;
+      if (error && error.code === 'PGRST116') { // No data found
+        // Create default notification settings
+        const defaultSettings = {
+          user_id: user.id,
+          enabled: true,
+          email_notifications: true,
+          push_notifications: true
+        };
+        
+        const { data: newData, error: insertError } = await supabase
+          .from('notification_settings')
+          .insert(defaultSettings)
+          .select()
+          .single();
+          
+        if (insertError) throw insertError;
+        return newData;
       }
 
-      // If no settings exist, create default settings
-      const defaultSettings = {
-        user_id: user.id,
-        new_recipes: true,
-        recipe_comments: true,
-        recipe_ratings: true,
-        weekly_newsletter: true,
-        special_offers: false,
-        updated_at: new Date().toISOString()
-      };
-
-      const { data: newSettings, error: insertError } = await supabase
-        .from('notification_settings')
-        .insert([defaultSettings])
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-      return newSettings;
+      if (error) throw error;
+      return data;
     } catch (error) {
       console.error('Error fetching notification settings:', error);
       throw error;
@@ -205,9 +247,7 @@ export const supabaseService = {
   updateNotificationSettings: async (settings) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not found');
-
-      const { data, error } = await supabase
+      if (!user) throw new Error('User not found');      const { data, error } = await supabase
         .from('notification_settings')
         .upsert({
           user_id: user.id,
@@ -238,7 +278,6 @@ export const supabaseService = {
       throw error;
     }
   },
-
   // Get connected accounts
   getConnectedAccounts: async () => {
     try {
@@ -250,11 +289,11 @@ export const supabaseService = {
         .select('*')
         .eq('user_id', user.id);
 
-      if (error) throw error;
-      return data;
+      if (error && error.code !== 'PGRST116') throw error; // Ignore "no rows" error
+      return data || [];
     } catch (error) {
       console.error('Error fetching connected accounts:', error);
       throw error;
     }
   }
-}; 
+};
