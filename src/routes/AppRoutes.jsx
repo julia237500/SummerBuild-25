@@ -7,42 +7,31 @@ import MyRecipes from '../components/MyRecipes';
 import NewRecipe from '../pages/NewRecipe';
 import RecipeDetail from '../pages/RecipeDetail';
 import RecipeSearch from '../components/RecipeSearch';
-import RecipeDetails from '../components/RecipeDetails';
 import Favorites from '../components/Favorites';
+import Profile from '../components/Profile';
 import AdminLogin from '../pages/AdminLogin';
 import AdminDashboard from '../pages/AdminDashboard';
 
 // Route wrapper for authenticated routes
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-  
+  if (loading) return <div>Loading...</div>;
   return user ? children : <Navigate to="/signin" />;
 };
 
 // Route wrapper for public routes (signin/signup)
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-  
+  if (loading) return <div>Loading...</div>;
   return !user ? children : <Navigate to="/" />;
 };
 
 export default function AppRoutes() {
-  const { user } = useAuth();
-
   return (
     <Routes>
-      {/* Public home page */}
+      {/* Public routes */}
       <Route path="/" element={<Home />} />
-
-      {/* Auth routes - redirect to home if already logged in */}
+      <Route path="/recipe/:id" element={<RecipeDetail />} />
       <Route
         path="/signin"
         element={
@@ -60,20 +49,20 @@ export default function AppRoutes() {
         }
       />
 
-      {/* Protected routes - require authentication */}
+      {/* Protected routes */}
+      <Route
+        path="/profile"
+        element={
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        }
+      />
       <Route
         path="/search"
         element={
           <PrivateRoute>
             <RecipeSearch />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/recipe/:id"
-        element={
-          <PrivateRoute>
-            <RecipeDetails />
           </PrivateRoute>
         }
       />
@@ -106,7 +95,7 @@ export default function AppRoutes() {
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
-      {/* Catch all route - redirect to home */}
+      {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

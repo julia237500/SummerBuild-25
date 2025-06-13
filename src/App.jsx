@@ -1,50 +1,63 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import supabase from './services/supabaseClient';
 import Navbar from './components/Navbar';
-import SignIn from './pages/SignIn';
-import SignUp from './pages/SignUp';
-import Home from './components/Home';
-import RecipeSearch from './components/RecipeSearch';
-import RecipeDetails from './components/RecipeDetails';
-import MyRecipes from './components/MyRecipes';
-import RecipeForm from './components/RecipeForm';
-import Favorites from './components/Favorites';
-import StorageTest from './components/StorageTest';
-import Subscription from './components/Subscription';
-import SubscriptionSuccess from './components/SubscriptionSuccess';
-import PaymentMethods from './components/PaymentMethods';
-import BillingHistory from './components/BillingHistory';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
+import AppRoutes from './routes/AppRoutes';
 import './App.css';
 
 function App() {
+  console.log('App component rendering');
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+    try {
+      console.log('Setting up auth listener');
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      setLoading(false);
-    });
+      // Get initial session
+      supabase.auth.getSession()
+        .then(({ data: { session } }) => {
+          console.log('Initial session:', session);
+          setSession(session);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error('Error getting session:', err);
+          setError(err.message);
+          setLoading(false);
+        });
 
-    return () => subscription.unsubscribe();
+      // Listen for auth changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        console.log('Auth state changed:', session);
+        setSession(session);
+        setLoading(false);
+      });
+
+      return () => {
+        console.log('Cleaning up auth listener');
+        subscription.unsubscribe();
+      };
+    } catch (err) {
+      console.error('Error in auth setup:', err);
+      setError(err.message);
+      setLoading(false);
+    }
   }, []);
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-600">Error: {error}</div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div>Loading...</div>
       </div>
     );
   }
@@ -54,134 +67,7 @@ function App() {
       <div className="app">
         {session && <Navbar />}
         <main className="main-content">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                session ? (
-                  <Home />
-                ) : (
-                  <Navigate to="/signin" replace />
-                )
-              }
-            />
-            <Route
-              path="/subscription"
-              element={
-                session ? (
-                  <Subscription />
-                ) : (
-                  <Navigate to="/signin" replace />
-                )
-              }
-            />
-            <Route
-              path="/subscription/success"
-              element={
-                session ? (
-                  <SubscriptionSuccess />
-                ) : (
-                  <Navigate to="/signin" replace />
-                )
-              }
-            />
-            <Route
-              path="/search"
-              element={
-                session ? (
-                  <RecipeSearch />
-                ) : (
-                  <Navigate to="/signin" replace />
-                )
-              }
-            />
-            <Route
-              path="/recipe/:id"
-              element={
-                session ? (
-                  <RecipeDetails />
-                ) : (
-                  <Navigate to="/signin" replace />
-                )
-              }
-            />
-            <Route
-              path="/my-recipes"
-              element={
-                session ? (
-                  <MyRecipes />
-                ) : (
-                  <Navigate to="/signin" replace />
-                )
-              }
-            />
-            <Route
-              path="/my-recipes/new"
-              element={
-                session ? (
-                  <RecipeForm />
-                ) : (
-                  <Navigate to="/signin" replace />
-                )
-              }
-            />
-            <Route
-              path="/my-recipes/edit/:id"
-              element={
-                session ? (
-                  <RecipeForm />
-                ) : (
-                  <Navigate to="/signin" replace />
-                )
-              }
-            />
-            <Route
-              path="/favorites"
-              element={
-                session ? (
-                  <Favorites />
-                ) : (
-                  <Navigate to="/signin" replace />
-                )
-              }
-            />
-            <Route
-              path="/storage-test"
-              element={
-                session ? (
-                  <StorageTest />
-                ) : (
-                  <Navigate to="/signin" replace />
-                )
-              }
-            />
-            <Route
-              path="/signin"
-              element={
-                !session ? (
-                  <SignIn />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                !session ? (
-                  <SignUp />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            <Route path="/payment-methods" element={<PaymentMethods />} />
-            <Route path="/billing-history" element={<BillingHistory />} />
-
-            {/* Admin routes */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          </Routes>
+          <AppRoutes />
         </main>
       </div>
     </Router>
