@@ -21,6 +21,9 @@ app.use('/api/admin', adminRoutes);
 // Map root route to reset DB
 app.get('/', resetRecipeTable);
 
+const stripeRoutes = require('./routes/Stripe');
+app.use('/api/stripe', stripeRoutes);
+
 // Start server
 app.listen(5000, () => {
   console.log('Backend running on http://localhost:5000');
