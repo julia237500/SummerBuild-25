@@ -4,13 +4,14 @@ const Stripe = require('stripe');
 const stripe = Stripe(process.env.VITE_STRIPE_SECRET_KEY);
 
 router.post('/create-checkout-session', async (req, res) => {
-  try {
+    try {
+    const { email, priceId } = req.body;
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'subscription',
       line_items: [
         {
-          price: 'price_XXXXXXXXXXXX', // Replace with your Stripe price ID
+          price: priceId, // Use the priceId sent from the frontend
           quantity: 1,
         },
       ],
