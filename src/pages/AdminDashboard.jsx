@@ -2,16 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import supabase from '../services/supabaseClient';
 import { recipeService } from '../services/recipeService';
-import UploadTester from './UploadTester';
-import ErrorSimulator from './ErrorSimulator';
-import FormPrefillTester from './FormPrefillTester';
 
 const tools = [
   { name: 'Reset/Delete All Recipes', route: '/admin/reset', icon: '🗑️', color: '#3498db' },
   { name: 'View/Edit/Delete Recipes', route: '/admin/manage', icon: '📋', color: '#2ecc71' },
-  { name: 'Upload Tester', route: '/admin/upload-test', icon: '📤', color: '#f39c12' },
-  { name: 'Error Simulator', route: '/admin/error-sim', icon: '⚠️', color: '#e74c3c' },
-  { name: 'Form Pre-fill Tester', route: '/admin/form-prefill', icon: '🧪', color: '#9b59b6' },
   { name: 'Revenue', route: '/admin/revenue', icon: '💰', color: '#ff9800' }, // added
   { name: 'Admin Profile', route: '/admin/profile', icon: '👤', color: '#607d8b' } // added
 ];
@@ -20,9 +14,6 @@ const SIDEBAR_ITEMS = [
   { key: 'home', label: 'Home', icon: '🏠' },
   { key: 'dashboard', label: 'Dashboard', icon: '📊' },
   { key: 'recipes', label: 'Recipes', icon: '🛠️' },
-  { key: 'upload-test', label: 'Upload Tester', icon: '📤' },
-  { key: 'error-sim', label: 'Error Simulator', icon: '⚠️' },
-  { key: 'form-prefill', label: 'Form Pre-fill Tester', icon: '🧪' }, // added here
   { key: 'revenue', label: 'Revenue', icon: '💰' },
   { key: 'profile', label: 'Admin Profile', icon: '👤' }
 ];
@@ -95,15 +86,7 @@ export default function AdminDashboard() {
 
   // Sidebar button click handler
   const handleSidebarClick = (key) => {
-    if (key === 'upload-test') {
-      setActivePage('upload-test');
-    } else if (key === 'error-sim') {
-      setActivePage('error-sim');
-    } else if (key === 'form-prefill') {
-      setActivePage('form-prefill');
-    } else {
-      setActivePage(key);
-    }
+    setActivePage(key);
   };
 
   // Admin logout handler
@@ -255,9 +238,6 @@ export default function AdminDashboard() {
               // Map tool.route to sidebar key for navigation
               if (tool.route === '/admin/reset') return handleResetAllRecipes();
               if (tool.route === '/admin/manage') return setActivePage('recipes');
-              if (tool.route === '/admin/upload-test') return setActivePage('upload-test');
-              if (tool.route === '/admin/error-sim') return setActivePage('error-sim');
-              if (tool.route === '/admin/form-prefill') return setActivePage('form-prefill');
               if (tool.route === '/admin/revenue') return setActivePage('revenue');
               if (tool.route === '/admin/profile') return setActivePage('profile');
               // fallback
@@ -269,9 +249,6 @@ export default function AdminDashboard() {
                 // Same as above
                 if (tool.route === '/admin/reset') return handleResetAllRecipes();
                 if (tool.route === '/admin/manage') return setActivePage('recipes');
-                if (tool.route === '/admin/upload-test') return setActivePage('upload-test');
-                if (tool.route === '/admin/error-sim') return setActivePage('error-sim');
-                if (tool.route === '/admin/form-prefill') return setActivePage('form-prefill');
                 if (tool.route === '/admin/revenue') return setActivePage('revenue');
                 if (tool.route === '/admin/profile') return setActivePage('profile');
                 navigate(tool.route);
@@ -816,9 +793,6 @@ export default function AdminDashboard() {
         {activePage === 'recipes' && renderManageRecipes()}
         {activePage === 'revenue' && renderPlaceholder('Revenue')}
         {activePage === 'profile' && renderAdminProfile()}
-        {activePage === 'upload-test' && <UploadTester />}
-        {activePage === 'error-sim' && <ErrorSimulator />}
-        {activePage === 'form-prefill' && <FormPrefillTester />}
       </main>
     </div>
   );
