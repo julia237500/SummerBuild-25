@@ -10,7 +10,7 @@ export default function AdminLogin() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (email === 'admin@abc.com' && password === 'admin123') {
+    if (email === 'admin@abc.com' && password === 'Recipehub123$') {
       navigate('/admin/dashboard');
     } else {
       setError('Invalid login credentials');

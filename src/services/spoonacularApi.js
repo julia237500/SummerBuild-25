@@ -9,10 +9,17 @@ const handleResponse = async (response) => {
   return response.json();
 };
 
+const logApiUsage = async () => {
+  try {
+    await fetch('/api/spoonacular/log', { method: 'POST' });
+  } catch {}
+};
+
 export const spoonacularApi = {
   // Autocomplete search suggestions
   getAutocompleteSuggestions: async (query, number = 5) => {
     try {
+      await logApiUsage();
       const params = new URLSearchParams({
         apiKey: API_KEY,
         query: query,
@@ -32,6 +39,7 @@ export const spoonacularApi = {
   // Search recipes with various parameters
   searchRecipes: async (query, sortBy = '', limit = 12) => {
     try {
+      await logApiUsage();
       const params = new URLSearchParams({
         apiKey: API_KEY,
         number: limit,
@@ -53,6 +61,7 @@ export const spoonacularApi = {
   // Get detailed recipe information by ID
   getRecipeById: async (id) => {
     try {
+      await logApiUsage();
       console.log('SpoonacularAPI: Fetching recipe with ID:', id);
       const params = new URLSearchParams({
         apiKey: API_KEY,
@@ -80,6 +89,7 @@ export const spoonacularApi = {
   // Get similar recipes
   getSimilarRecipes: async (id, number = 4) => {
     try {
+      await logApiUsage();
       const response = await fetch(
         `${BASE_URL}/${id}/similar?apiKey=${API_KEY}&number=${number}`
       );
@@ -93,6 +103,7 @@ export const spoonacularApi = {
   // Get random recipes
   getRandomRecipes: async (number = 10, tags = '') => {
     try {
+      await logApiUsage();
       const params = new URLSearchParams({
         apiKey: API_KEY,
         number: number,
@@ -110,6 +121,7 @@ export const spoonacularApi = {
   // Get recipe instructions by ID
   getRecipeInstructions: async (id) => {
     try {
+      await logApiUsage();
       const response = await fetch(
         `${BASE_URL}/${id}/analyzedInstructions?apiKey=${API_KEY}&stepBreakdown=true`
       );
@@ -123,6 +135,7 @@ export const spoonacularApi = {
   // Get analyzed recipe instructions with equipment and ingredients
   getAnalyzedInstructions: async (id) => {
     try {
+      await logApiUsage();
       const params = new URLSearchParams({
         apiKey: API_KEY,
         stepBreakdown: true,
@@ -144,6 +157,7 @@ export const spoonacularApi = {
   // Get ingredient substitutes
   getIngredientSubstitutes: async (ingredientName) => {
     try {
+      await logApiUsage();
       const params = new URLSearchParams({
         apiKey: API_KEY,
         ingredientName: ingredientName

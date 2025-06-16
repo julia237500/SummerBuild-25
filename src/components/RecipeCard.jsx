@@ -4,7 +4,6 @@ import { FaClock, FaUtensils, FaHeart, FaStar, FaLock } from 'react-icons/fa';
 import { GiCookingPot } from 'react-icons/gi';
 import { recipeService } from '../services/recipeService';
 import './RecipeCard.css';
-import axios from 'axios';
 
 export default function RecipeCard({ recipe, onFavoriteToggle, showActions = true }) {
   const [isLoading, setIsLoading] = useState(false);
