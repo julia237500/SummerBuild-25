@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import supabase from '../services/supabaseClient';
 
+// Spoonacular supported categories (dish types)
+const SPOONACULAR_CATEGORIES = [
+  'main course', 'side dish', 'dessert', 'appetizer', 'salad', 'bread',
+  'breakfast', 'soup', 'beverage', 'sauce', 'drink'
+];
+
 export default function RecipesPage() {
   const [spoonacularCount, setSpoonacularCount] = useState(null);
   const [spoonacularLoading, setSpoonacularLoading] = useState(true);
@@ -12,6 +18,7 @@ export default function RecipesPage() {
   const [mostLiked, setMostLiked] = useState([]);
   const [topIngredients, setTopIngredients] = useState([]);
   const [categoryDist, setCategoryDist] = useState([]);
+  const [spoonacularCategories, setSpoonacularCategories] = useState([]);
 
   // Fetch Spoonacular total recipe count
   useEffect(() => {
@@ -116,6 +123,36 @@ export default function RecipesPage() {
     fetchStats();
   }, []);
 
+  // Fetch Spoonacular category counts
+  useEffect(() => {
+    async function fetchSpoonacularCategories() {
+      try {
+        const apiKey = '2863f900ec384741b259f7931da49aae';
+        const results = [];
+        for (const cat of SPOONACULAR_CATEGORIES) {
+          const params = new URLSearchParams({
+            apiKey,
+            number: 1,
+            type: cat
+          });
+          const res = await fetch(`https://api.spoonacular.com/recipes/complexSearch?${params}`);
+          if (res.ok) {
+            const data = await res.json();
+            results.push({ name: cat.replace(/\b\w/g, l => l.toUpperCase()), count: data.totalResults || 0 });
+          } else {
+            results.push({ name: cat.replace(/\b\w/g, l => l.toUpperCase()), count: 0 });
+          }
+          // To avoid hitting rate limits, add a small delay between requests
+          await new Promise(r => setTimeout(r, 200));
+        }
+        setSpoonacularCategories(results);
+      } catch {
+        setSpoonacularCategories([]);
+      }
+    }
+    fetchSpoonacularCategories();
+  }, []);
+
   // UI
   return (
     <div style={{
@@ -193,6 +230,31 @@ export default function RecipesPage() {
         <SectionCard title="Recipe Distribution by Category">
           <div style={{ width: '100%', maxWidth: 700, margin: '0 auto' }}>
             <CategoryBarChart data={categoryDist} />
+            <div style={{ marginTop: 32 }}>
+              <h3 style={{ fontSize: 18, marginBottom: 12 }}>Spoonacular Categories</h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', background: '#f9f9f9', borderRadius: 8 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 700, color: '#222c36' }}>Category</th>
+                    <th style={{ textAlign: 'right', padding: '8px 12px', fontWeight: 700, color: '#222c36' }}># Recipes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {spoonacularCategories.length === 0 ? (
+                    <tr>
+                      <td colSpan={2} style={{ textAlign: 'center', color: '#888', padding: 16 }}>Loading Spoonacular categories...</td>
+                    </tr>
+                  ) : (
+                    spoonacularCategories.map((cat, i) => (
+                      <tr key={i}>
+                        <td style={{ padding: '8px 12px', borderBottom: '1px solid #eee' }}>{cat.name}</td>
+                        <td style={{ padding: '8px 12px', textAlign: 'right', borderBottom: '1px solid #eee' }}>{cat.count.toLocaleString()}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </SectionCard>
 
