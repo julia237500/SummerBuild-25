@@ -11,6 +11,8 @@ import Favorites from '../components/Favorites';
 import Profile from '../components/Profile';
 import AdminLogin from '../pages/AdminLogin';
 import AdminDashboard from '../pages/AdminDashboard';
+import SubscriptionPage from '../src/SubscriptionPage';
+
 
 // Route wrapper for authenticated routes
 const PrivateRoute = ({ children }) => {
@@ -48,6 +50,10 @@ export default function AppRoutes() {
           </PublicRoute>
         }
       />
+      <Route
+        path="/subscription"
+        element={<SubscriptionPage />}
+        />
 
       {/* Protected routes */}
       <Route
