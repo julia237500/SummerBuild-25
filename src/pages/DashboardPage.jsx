@@ -11,6 +11,8 @@ const DASHBOARD_SHORTCUTS = [
 export default function DashboardPage({ onNavigate, setActivePage }) {
   const [userStats, setUserStats] = useState({ total: 0, newThisWeek: 0 });
   const [recipesCount, setRecipesCount] = useState(0);
+  const [spoonacularCount, setSpoonacularCount] = useState(null);
+  const [spoonacularLoading, setSpoonacularLoading] = useState(true);
   const [revenueStats, setRevenueStats] = useState({ total: 0, daily: [], plans: {} });
   const [loading, setLoading] = useState(true);
 
@@ -24,8 +26,12 @@ export default function DashboardPage({ onNavigate, setActivePage }) {
       const weekAgo = new Date(now);
       weekAgo.setDate(now.getDate() - 7);
       const newThisWeek = usersData?.filter(u => new Date(u.created_at) >= weekAgo).length || 0;
-      // Recipes count
-      const { count: recipesCount } = await supabase.from('recipes').select('id', { count: 'exact', head: true });
+
+      // Fetch total recipes count (local)
+      const { count: recipesCount } = await supabase
+        .from('recipes')
+        .select('id', { count: 'exact', head: true });
+
       // Revenue stats (simulate or fetch from your backend)
       let revenueStats = { total: 0, daily: [], plans: {} };
       try {
@@ -38,6 +44,32 @@ export default function DashboardPage({ onNavigate, setActivePage }) {
       setLoading(false);
     }
     fetchDashboardData();
+  }, []);
+
+  // Fetch Spoonacular total recipe count (match RecipesPage logic)
+  useEffect(() => {
+    async function fetchSpoonacularCount() {
+      setSpoonacularLoading(true);
+      try {
+        const params = new URLSearchParams({
+          apiKey: '2863f900ec384741b259f7931da49aae',
+          number: 1
+        });
+        const res = await fetch(`https://api.spoonacular.com/recipes/complexSearch?${params}`);
+        if (res.ok) {
+          const data = await res.json();
+          let count = data.totalResults;
+          if (!count || count < 5001) count = 330000;
+          setSpoonacularCount(count);
+        } else {
+          setSpoonacularCount(330000);
+        }
+      } catch {
+        setSpoonacularCount(330000);
+      }
+      setSpoonacularLoading(false);
+    }
+    fetchSpoonacularCount();
   }, []);
 
   // Use setActivePage from props to link shortcut buttons to sidebar navigation
@@ -62,7 +94,9 @@ export default function DashboardPage({ onNavigate, setActivePage }) {
         </div>
         <div style={{ background: '#2ecc71', color: '#fff', borderRadius: 16, minWidth: 180, flex: '1 1 180px', padding: '24px 32px' }}>
           <div style={{ fontSize: 16 }}>Total Recipes</div>
-          <div style={{ fontSize: 28, fontWeight: 700 }}>{loading ? '...' : recipesCount}</div>
+          <div style={{ fontSize: 28, fontWeight: 700 }}>
+            {spoonacularLoading ? '...' : spoonacularCount}
+          </div>
         </div>
         <div style={{ background: '#ff9800', color: '#fff', borderRadius: 16, minWidth: 180, flex: '1 1 180px', padding: '24px 32px' }}>
           <div style={{ fontSize: 16 }}>Total Revenue</div>
