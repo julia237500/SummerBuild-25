@@ -17,6 +17,8 @@ app.use(express.json());
 app.use('/api/recipes', recipeRoutes);
 app.use('/dev', devRoutes); 
 app.use('/api/admin', adminRoutes);
+const spoonacularRoutes = require('./routes/spoonacular');
+app.use('/api/spoonacular', spoonacularRoutes);
 
 // Map root route to reset DB
 app.get('/', resetRecipeTable);
