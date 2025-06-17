@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { recipeService } from '../services/recipeService';
 
@@ -12,7 +12,11 @@ export default function MealPlanner() {
   const [planner, setPlanner] = useState({});
   const [selectedCell, setSelectedCell] = useState(null);
   const [showRecipePicker, setShowRecipePicker] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState('');
+  const modalRef = useRef(null);
 
+  // Load recipes and planner from DB
   useEffect(() => {
     async function loadRecipes() {
       if (user) {
@@ -24,8 +28,56 @@ export default function MealPlanner() {
         }
       }
     }
+    async function loadPlanner() {
+      if (user) {
+        try {
+          const plan = await recipeService.getMealPlan?.();
+          if (plan && typeof plan === 'object') setPlanner(plan);
+        } catch {}
+      }
+    }
     loadRecipes();
+    loadPlanner();
   }, [user]);
+
+  // Save planner to DB
+  async function savePlannerToDB() {
+    if (!user) return;
+    setSaving(true);
+    try {
+      await recipeService.saveMealPlan?.(planner);
+      setToast('Meal plan saved!');
+      setTimeout(() => setToast(''), 2000);
+    } catch {
+      setToast('Failed to save meal plan');
+      setTimeout(() => setToast(''), 2000);
+    }
+    setSaving(false);
+  }
+
+  // Modal accessibility: close on Esc, focus trap
+  useEffect(() => {
+    if (!showRecipePicker) return;
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') setShowRecipePicker(false);
+      // Focus trap
+      if (modalRef.current && e.key === 'Tab') {
+        const focusable = modalRef.current.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          last.focus();
+          e.preventDefault();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          first.focus();
+          e.preventDefault();
+        }
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showRecipePicker]);
 
   const handleCellClick = (day, meal) => {
     setSelectedCell({ day, meal });
@@ -43,6 +95,8 @@ export default function MealPlanner() {
     }));
     setShowRecipePicker(false);
     setSelectedCell(null);
+    setToast('Recipe assigned!');
+    setTimeout(() => setToast(''), 1500);
   };
 
   const removeRecipe = (day, meal) => {
@@ -51,27 +105,42 @@ export default function MealPlanner() {
       delete newPlanner[`${day}_${meal}`];
       return newPlanner;
     });
+    setToast('Recipe removed!');
+    setTimeout(() => setToast(''), 1500);
   };
 
+  // Google Calendar Integration (improved date range)
   const addToGoogleCalendar = (day, meal, recipe) => {
-    const date = getNextDateForDay(day);
+    const startDate = getNextDateForDay(day);
+    const endDate = getNextDateForDay(day, 1);
     const title = `${meal}: ${recipe.name || recipe.title}`;
     const description = recipe.description || '';
     const url = window.location.origin + `/recipe/${recipe.id}`;
     const details = encodeURIComponent(`${description}\n\nView recipe: ${url}`);
-    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${date}/${date}&details=${details}`;
+    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate}/${endDate}&details=${details}`;
     window.open(calendarUrl, '_blank');
   };
 
-  function getNextDateForDay(day) {
+  // Helper to get next date string for a given day of week (YYYYMMDD)
+  function getNextDateForDay(day, offset = 0) {
     const today = new Date();
     const dayIndex = DAYS.indexOf(day);
     const todayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1;
     let diff = dayIndex - todayIndex;
     if (diff < 0) diff += 7;
     const target = new Date(today);
-    target.setDate(today.getDate() + diff);
+    target.setDate(today.getDate() + diff + offset);
     return target.toISOString().slice(0, 10).replace(/-/g, '');
+  }
+
+  // Highlight selected cell
+  function isSelectedCell(day, meal) {
+    return selectedCell && selectedCell.day === day && selectedCell.meal === meal;
+  }
+
+  // View recipe (open in new tab)
+  function viewRecipe(recipeId) {
+    window.open(`/recipe/${recipeId}`, '_blank');
   }
 
   return (
@@ -98,6 +167,26 @@ export default function MealPlanner() {
         }}>
           Meal Planner
         </h1>
+        <div style={{ marginBottom: 24, display: 'flex', gap: 16 }}>
+          <button
+            style={{
+              background: '#4CAF50',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              padding: '10px 28px',
+              fontWeight: 700,
+              fontSize: 16,
+              cursor: saving ? 'not-allowed' : 'pointer',
+              boxShadow: '0 2px 8px #0001',
+              opacity: saving ? 0.7 : 1
+            }}
+            onClick={savePlannerToDB}
+            disabled={saving}
+          >
+            {saving ? 'Saving...' : 'Save Plan'}
+          </button>
+        </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{
             width: '100%',
@@ -141,13 +230,19 @@ export default function MealPlanner() {
                     const cellKey = `${day}_${meal}`;
                     const cell = planner[cellKey];
                     return (
-                      <td key={meal} style={{
-                        padding: 16,
-                        minWidth: 180,
-                        border: '1px solid #e3f2fd',
-                        verticalAlign: 'top',
-                        background: dayIdx % 2 === 0 ? '#f8fafc' : '#fff'
-                      }}>
+                      <td
+                        key={meal}
+                        style={{
+                          padding: 16,
+                          minWidth: 180,
+                          border: '1px solid #e3f2fd',
+                          verticalAlign: 'top',
+                          background: isSelectedCell(day, meal)
+                            ? '#d1eaff'
+                            : (dayIdx % 2 === 0 ? '#f8fafc' : '#fff'),
+                          boxShadow: isSelectedCell(day, meal) ? '0 0 0 2px #3498db' : undefined
+                        }}
+                      >
                         {cell ? (
                           <div style={{
                             display: 'flex',
@@ -158,8 +253,19 @@ export default function MealPlanner() {
                             <span style={{
                               fontWeight: 600,
                               color: '#3498db',
-                              fontSize: 16
-                            }}>{cell.recipeName}</span>
+                              fontSize: 16,
+                              cursor: 'pointer',
+                              textDecoration: 'underline'
+                            }}
+                              tabIndex={0}
+                              onClick={() => viewRecipe(cell.recipeId)}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') viewRecipe(cell.recipeId);
+                              }}
+                              aria-label="View recipe"
+                            >
+                              {cell.recipeName}
+                            </span>
                             <div style={{ display: 'flex', gap: 8 }}>
                               <button
                                 style={{
@@ -224,65 +330,111 @@ export default function MealPlanner() {
 
         {/* Recipe Picker Modal */}
         {showRecipePicker && (
+          <MealPlannerModal
+            ref={modalRef}
+            recipes={recipes}
+            assignRecipe={assignRecipe}
+            onClose={() => setShowRecipePicker(false)}
+          />
+        )}
+        {toast && (
           <div style={{
-            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-            background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
+            position: 'fixed',
+            bottom: 32,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#4CAF50',
+            color: '#fff',
+            padding: '14px 32px',
+            borderRadius: 8,
+            fontWeight: 700,
+            fontSize: 16,
+            boxShadow: '0 2px 8px #0002',
+            zIndex: 3000
           }}>
-            <div style={{
-              background: '#fff',
-              borderRadius: 14,
-              padding: 32,
-              maxWidth: 500,
-              width: '100%',
-              boxShadow: '0 4px 24px #0002'
-            }}>
-              <h2 style={{
-                fontSize: 22,
-                fontWeight: 700,
-                marginBottom: 18,
-                color: '#222c36'
-              }}>Select a Recipe</h2>
-              <div style={{ maxHeight: 320, overflowY: 'auto', marginBottom: 18 }}>
-                {recipes.length === 0 ? (
-                  <div style={{ color: '#888' }}>No recipes found.</div>
-                ) : (
-                  recipes.map(recipe => (
-                    <div
-                      key={recipe.id}
-                      style={{
-                        padding: '12px 0',
-                        borderBottom: '1px solid #eee',
-                        cursor: 'pointer',
-                        color: '#3498db',
-                        fontWeight: 600,
-                        fontSize: 16
-                      }}
-                      onClick={() => assignRecipe(recipe)}
-                    >
-                      {recipe.name || recipe.title}
-                    </div>
-                  ))
-                )}
-              </div>
-              <button
-                style={{
-                  marginTop: 8,
-                  background: '#e3f2fd',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '10px 24px',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  color: '#3498db'
-                }}
-                onClick={() => setShowRecipePicker(false)}
-              >
-                Cancel
-              </button>
-            </div>
+            {toast}
           </div>
         )}
       </div>
     </div>
   );
 }
+
+// Modal extracted for accessibility and reusability
+const MealPlannerModal = React.forwardRef(function MealPlannerModal({ recipes, assignRecipe, onClose }, ref) {
+  useEffect(() => {
+    if (ref && ref.current) {
+      ref.current.focus();
+    }
+  }, [ref]);
+  return (
+    <div
+      ref={ref}
+      role="dialog"
+      aria-modal="true"
+      tabIndex={-1}
+      style={{
+        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+        background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
+      }}
+    >
+      <div style={{
+        background: '#fff',
+        borderRadius: 14,
+        padding: 32,
+        maxWidth: 500,
+        width: '100%',
+        boxShadow: '0 4px 24px #0002'
+      }}>
+        <h2 style={{
+          fontSize: 22,
+          fontWeight: 700,
+          marginBottom: 18,
+          color: '#222c36'
+        }}>Select a Recipe</h2>
+        <div style={{ maxHeight: 320, overflowY: 'auto', marginBottom: 18 }}>
+          {recipes.length === 0 ? (
+            <div style={{ color: '#888' }}>No recipes found.</div>
+          ) : (
+            recipes.map(recipe => (
+              <div
+                key={recipe.id}
+                style={{
+                  padding: '12px 0',
+                  borderBottom: '1px solid #eee',
+                  cursor: 'pointer',
+                  color: '#3498db',
+                  fontWeight: 600,
+                  fontSize: 16
+                }}
+                tabIndex={0}
+                onClick={() => assignRecipe(recipe)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') assignRecipe(recipe);
+                }}
+                aria-label={`Assign ${recipe.name || recipe.title}`}
+              >
+                {recipe.name || recipe.title}
+              </div>
+            ))
+          )}
+        </div>
+        <button
+          style={{
+            marginTop: 8,
+            background: '#e3f2fd',
+            border: 'none',
+            borderRadius: 8,
+            padding: '10px 24px',
+            cursor: 'pointer',
+            fontWeight: 600,
+            color: '#3498db'
+          }}
+          onClick={onClose}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+});
