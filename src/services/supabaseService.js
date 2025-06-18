@@ -132,7 +132,8 @@ export const supabaseService = {
   getUserPreferences: async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not found');      const { data, error } = await supabase
+      if (!user) throw new Error('User not found');      
+      const { data, error } = await supabase
         .from('user_preferences')
         .select('*')
         .eq('user_id', user.id)
@@ -174,7 +175,8 @@ export const supabaseService = {
         .from('user_preferences')
         .upsert({
           user_id: user.id,
-          ...preferences,
+          favorite_cuisines: preferences.cuisines,
+          dietary_preferences: preferences.dietary,
           updated_at: new Date().toISOString()
         })
         .select()
@@ -187,7 +189,7 @@ export const supabaseService = {
       throw error;
     }
   },
-
+ 
   // Get user activity
   getUserActivity: async () => {
     try {

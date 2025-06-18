@@ -17,6 +17,8 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState('personal');
   const [user, setUser] = useState(null);
   const [preferences, setPreferences] = useState(null);
+  const [isEditingPreferences, setIsEditingPreferences] = useState(false);
+  const [originalPreferences, setOriginalPreferences] = useState(null);
   const [activity, setActivity] = useState([]);
   const [notifications, setNotifications] = useState(null);
   const [connectedAccounts, setConnectedAccounts] = useState([]);
@@ -31,8 +33,8 @@ export default function Profile() {
     cooking_level: 'Beginner',
     avatar_url: '',
     preferences: {
-      cuisines: [],
-      dietary: []
+      favorite_cuisines: [],
+      dietary_preferences: []
     }
   });
   const [avatarUrl, setAvatarUrl] = useState(null);
@@ -41,6 +43,13 @@ export default function Profile() {
   useEffect(() => {
     fetchUserData();
   }, []);
+
+  // This runs only AFTER the user is successfully fetched
+  useEffect(() => {
+    if (user) {
+      fetchPreferences();
+    }
+  }, [user]);
 
   // Set editing mode when mounted
   useEffect(() => {
@@ -190,11 +199,11 @@ export default function Profile() {
       console.log('Profile updated successfully:', updatedProfile);
 
       // Update preferences if they've changed and are valid
-      if (formData.preferences?.dietary || formData.preferences?.cuisines) {
+      if (formData.preferences?.dietary_preferences || formData.preferences?.favorite_cuisines) {
         const preferencesUpdate = {
           user_id: user.id,
-          dietary_preferences: Array.isArray(formData.preferences.dietary) ? formData.preferences.dietary : [],
-          favorite_cuisines: Array.isArray(formData.preferences.cuisines) ? formData.preferences.cuisines : []
+          dietary_preferences: formData.preferences.dietary_preferences || [],
+          favorite_cuisines: formData.preferences.favorite_cuisines || [],
         };
 
         console.log('Updating preferences:', preferencesUpdate);
@@ -374,19 +383,66 @@ export default function Profile() {
       console.error(err);
     } finally {
       setLoading(false);
-    }  };
+    } 
+  };
+
+  const fetchPreferences = async () => {
+    try {
+      const prefs = await supabaseService.getUserPreferences();
+      const preferencesData = {
+        favorite_cuisines: prefs.favorite_cuisines || [],
+        dietary_preferences: prefs.dietary_preferences || [],
+      };
+      setFormData(prev => ({
+        ...prev,
+        preferences: preferencesData,
+      }));
+      setOriginalPreferences(preferencesData);
+    } catch (err) {
+      console.error('Failed to load preferences', err);
+      setError('Failed to load preferences.');
+    }
+  };
 
   const handlePreferenceChange = (type, value) => {
-    setFormData(prev => ({
-      ...prev,
-      preferences: {
-        ...prev.preferences,
-        [type]: prev.preferences[type].includes(value)
-          ? prev.preferences[type].filter(item => item !== value)
-          : [...prev.preferences[type], value]
-      }
-    }));
+    setFormData(prev => {
+      const current = prev.preferences?.[type] || [];
+      const updated = current.includes(value)
+        ? current.filter(item => item !== value)
+        : [...current, value];
+
+      return {
+        ...prev,
+        preferences: {
+          ...prev.preferences,
+          [type]: updated,
+        },
+      };
+    });
   };
+
+  const handleSavePreferences = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const saved = await supabaseService.updateUserPreferences({
+        dietary_preferences: formData.preferences.dietary_preferences || [],
+        favorite_cuisines: formData.preferences.favorite_cuisines || [],
+      });
+
+      setOriginalPreferences(formData.preferences);
+      setIsEditingPreferences(false);
+      setSuccessMessage('Preferences saved successfully!');
+    } catch (err) {
+      setError('Failed to save preferences.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading && !user) {
     return <div className="loading">Loading profile...</div>;
   }
@@ -531,6 +587,41 @@ export default function Profile() {
 
         {activeTab === 'preferences' && (
           <div className="preferences-section">
+            <div className="preference-header">
+              <h2>Preferences</h2>
+              {!isEditingPreferences ? (
+                <button className="edit-btn" onClick={() => {
+                  setOriginalPreferences(formData.preferences);
+                  setIsEditingPreferences(true);
+                }}>
+                  Edit Preferences
+                </button>
+              ) : (
+                <div className="edit-actions">
+                  <button
+                    className="cancel-btn"
+                    onClick={() => {
+                      setFormData(prev => ({
+                        ...prev,
+                        preferences: originalPreferences,
+                      }));
+                      setIsEditingPreferences(false);
+                      setError(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="save-btn"
+                    onClick={handleSavePreferences}
+                    disabled={loading}
+                  >
+                    {loading ? 'Saving...' : 'Save Preferences'}
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="preference-group">
               <h3>Cuisine Preferences</h3>
               <div className="preferences-grid">
@@ -538,8 +629,9 @@ export default function Profile() {
                   <label key={cuisine} className="preference-item">
                     <input
                       type="checkbox"
-                      checked={formData?.preferences?.cuisines?.includes(cuisine)}
-                      onChange={() => handlePreferenceChange('cuisines', cuisine)}
+                      checked={formData?.preferences?.favorite_cuisines?.includes(cuisine)}
+                      onChange={() => handlePreferenceChange('favorite_cuisines', cuisine)}
+                      disabled={!isEditingPreferences}
                     />
                     <span>{cuisine}</span>
                   </label>
@@ -554,8 +646,9 @@ export default function Profile() {
                   <label key={diet} className="preference-item">
                     <input
                       type="checkbox"
-                      checked={formData?.preferences?.dietary?.includes(diet)}
-                      onChange={() => handlePreferenceChange('dietary', diet)}
+                      checked={formData?.preferences?.dietary_preferences?.includes(diet)}
+                      onChange={() => handlePreferenceChange('dietary_preferences', diet)}
+                      disabled={!isEditingPreferences}
                     />
                     <span>{diet}</span>
                   </label>
