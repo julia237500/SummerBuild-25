@@ -11,7 +11,7 @@ import Favorites from '../components/Favorites';
 import Profile from '../components/Profile';
 import AdminLogin from '../pages/AdminLogin';
 import AdminDashboard from '../pages/AdminDashboard';
-import SubscriptionPage from '../SubscriptionPage';
+import SubscriptionPage from '../pages/SubscriptionPage';
 
 
 // Route wrapper for authenticated routes
