@@ -12,7 +12,7 @@ import Profile from '../components/Profile';
 import AdminLogin from '../pages/AdminLogin';
 import AdminDashboard from '../pages/AdminDashboard';
 import SubscriptionPage from '../SubscriptionPage';
-
+import MealPlanner from '../pages/MealPlanner';
 
 // Route wrapper for authenticated routes
 const PrivateRoute = ({ children }) => {
@@ -93,6 +93,14 @@ export default function AppRoutes() {
         element={
           <PrivateRoute>
             <Favorites />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/meal-planner"
+        element={
+          <PrivateRoute>
+            <MealPlanner />
           </PrivateRoute>
         }
       />

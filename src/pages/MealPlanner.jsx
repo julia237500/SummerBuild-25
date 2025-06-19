@@ -2,21 +2,30 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { recipeService } from '../services/recipeService';
 
-// Days and meal slots
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-const MEALS = ['Breakfast', 'Lunch', 'Dinner'];
+// Helper to get days in a month
+function getDaysInMonth(year, month) {
+  const numDays = new Date(year, month + 1, 0).getDate();
+  return Array.from({ length: numDays }, (_, i) => i + 1);
+}
+
+// Helper to get weekday (0=Sun, 6=Sat)
+function getWeekday(year, month, day) {
+  return new Date(year, month, day).getDay();
+}
 
 export default function MealPlanner() {
   const { user } = useAuth();
+  const today = new Date();
   const [recipes, setRecipes] = useState([]);
   const [planner, setPlanner] = useState({});
-  const [selectedCell, setSelectedCell] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [showRecipePicker, setShowRecipePicker] = useState(false);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
+  const [month, setMonth] = useState(today.getMonth());
+  const [year, setYear] = useState(today.getFullYear());
   const modalRef = useRef(null);
 
-  // Load recipes and planner from DB
   useEffect(() => {
     async function loadRecipes() {
       if (user) {
@@ -40,7 +49,6 @@ export default function MealPlanner() {
     loadPlanner();
   }, [user]);
 
-  // Save planner to DB
   async function savePlannerToDB() {
     if (!user) return;
     setSaving(true);
@@ -79,68 +87,78 @@ export default function MealPlanner() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [showRecipePicker]);
 
-  const handleCellClick = (day, meal) => {
-    setSelectedCell({ day, meal });
-    setShowRecipePicker(true);
-  };
-
+  // Assign recipe to selected date
   const assignRecipe = (recipe) => {
+    if (!selectedDate) return;
     setPlanner(prev => ({
       ...prev,
-      [`${selectedCell.day}_${selectedCell.meal}`]: {
+      [selectedDate]: {
         recipeId: recipe.id,
         recipeName: recipe.name || recipe.title,
         recipe
       }
     }));
     setShowRecipePicker(false);
-    setSelectedCell(null);
+    setSelectedDate(null);
     setToast('Recipe assigned!');
     setTimeout(() => setToast(''), 1500);
   };
 
-  const removeRecipe = (day, meal) => {
+  const removeRecipe = (dateKey) => {
     setPlanner(prev => {
       const newPlanner = { ...prev };
-      delete newPlanner[`${day}_${meal}`];
+      delete newPlanner[dateKey];
       return newPlanner;
     });
     setToast('Recipe removed!');
     setTimeout(() => setToast(''), 1500);
   };
 
-  // Google Calendar Integration (improved date range)
-  const addToGoogleCalendar = (day, meal, recipe) => {
-    const startDate = getNextDateForDay(day);
-    const endDate = getNextDateForDay(day, 1);
-    const title = `${meal}: ${recipe.name || recipe.title}`;
-    const description = recipe.description || '';
-    const url = window.location.origin + `/recipe/${recipe.id}`;
-    const details = encodeURIComponent(`${description}\n\nView recipe: ${url}`);
-    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate}/${endDate}&details=${details}`;
-    window.open(calendarUrl, '_blank');
+  // Calendar navigation
+  const prevMonth = () => {
+    if (month === 0) {
+      setMonth(11);
+      setYear(y => y - 1);
+    } else {
+      setMonth(m => m - 1);
+    }
+  };
+  const nextMonth = () => {
+    if (month === 11) {
+      setMonth(0);
+      setYear(y => y + 1);
+    } else {
+      setMonth(m => m + 1);
+    }
   };
 
-  // Helper to get next date string for a given day of week (YYYYMMDD)
-  function getNextDateForDay(day, offset = 0) {
-    const today = new Date();
-    const dayIndex = DAYS.indexOf(day);
-    const todayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1;
-    let diff = dayIndex - todayIndex;
-    if (diff < 0) diff += 7;
-    const target = new Date(today);
-    target.setDate(today.getDate() + diff + offset);
-    return target.toISOString().slice(0, 10).replace(/-/g, '');
-  }
-
-  // Highlight selected cell
-  function isSelectedCell(day, meal) {
-    return selectedCell && selectedCell.day === day && selectedCell.meal === meal;
+  // Helper to get date key (YYYY-MM-DD)
+  function getDateKey(year, month, day) {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   }
 
   // View recipe (open in new tab)
   function viewRecipe(recipeId) {
     window.open(`/recipe/${recipeId}`, '_blank');
+  }
+
+  // Calendar rendering
+  const daysInMonth = getDaysInMonth(year, month);
+  const firstDayWeekday = getWeekday(year, month, 1);
+  const calendarRows = [];
+  let week = [];
+  // Fill empty cells before first day
+  for (let i = 0; i < firstDayWeekday; i++) week.push(null);
+  daysInMonth.forEach(day => {
+    week.push(day);
+    if (week.length === 7) {
+      calendarRows.push(week);
+      week = [];
+    }
+  });
+  if (week.length) {
+    while (week.length < 7) week.push(null);
+    calendarRows.push(week);
   }
 
   return (
@@ -167,16 +185,50 @@ export default function MealPlanner() {
         }}>
           Meal Planner
         </h1>
-        <div style={{ marginBottom: 24, display: 'flex', gap: 16 }}>
+        <div style={{ marginBottom: 24, display: 'flex', gap: 16, alignItems: 'center' }}>
+          <button
+            style={{
+              background: '#e3f2fd',
+              color: '#3498db',
+              border: 'none',
+              borderRadius: 8,
+              padding: '8px 18px',
+              fontWeight: 700,
+              fontSize: 16,
+              cursor: 'pointer'
+            }}
+            onClick={prevMonth}
+          >
+            &lt; Prev
+          </button>
+          <span style={{ fontWeight: 700, fontSize: 20 }}>
+            {new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' })}
+          </span>
+          <button
+            style={{
+              background: '#e3f2fd',
+              color: '#3498db',
+              border: 'none',
+              borderRadius: 8,
+              padding: '8px 18px',
+              fontWeight: 700,
+              fontSize: 16,
+              cursor: 'pointer'
+            }}
+            onClick={nextMonth}
+          >
+            Next &gt;
+          </button>
           <button
             style={{
               background: '#4CAF50',
               color: '#fff',
               border: 'none',
               borderRadius: 8,
-              padding: '10px 28px',
+              padding: '8px 28px',
               fontWeight: 700,
               fontSize: 16,
+              marginLeft: 'auto',
               cursor: saving ? 'not-allowed' : 'pointer',
               boxShadow: '0 2px 8px #0001',
               opacity: saving ? 0.7 : 1
@@ -198,65 +250,52 @@ export default function MealPlanner() {
           }}>
             <thead>
               <tr>
-                <th style={{
-                  padding: 16,
-                  background: '#e3f2fd',
-                  fontWeight: 700,
-                  color: '#222c36',
-                  fontSize: 18,
-                  borderTopLeftRadius: 12
-                }}>Day / Meal</th>
-                {MEALS.map(meal => (
-                  <th key={meal} style={{
-                    padding: 16,
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                  <th key={d} style={{
+                    padding: 12,
                     background: '#e3f2fd',
                     fontWeight: 700,
                     color: '#222c36',
-                    fontSize: 18
-                  }}>{meal}</th>
+                    fontSize: 16
+                  }}>{d}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {DAYS.map((day, dayIdx) => (
-                <tr key={day}>
-                  <td style={{
-                    padding: 16,
-                    fontWeight: 600,
-                    background: dayIdx % 2 === 0 ? '#f8fafc' : '#fff',
-                    color: '#222c36'
-                  }}>{day}</td>
-                  {MEALS.map(meal => {
-                    const cellKey = `${day}_${meal}`;
-                    const cell = planner[cellKey];
+              {calendarRows.map((row, i) => (
+                <tr key={i}>
+                  {row.map((day, j) => {
+                    if (!day) {
+                      return <td key={j} style={{ background: '#f4f6fa', padding: 16 }} />;
+                    }
+                    const dateKey = getDateKey(year, month, day);
+                    const cell = planner[dateKey];
+                    const isToday = year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
                     return (
                       <td
-                        key={meal}
+                        key={j}
                         style={{
-                          padding: 16,
-                          minWidth: 180,
+                          padding: 12,
+                          minWidth: 120,
+                          minHeight: 80,
                           border: '1px solid #e3f2fd',
                           verticalAlign: 'top',
-                          background: isSelectedCell(day, meal)
-                            ? '#d1eaff'
-                            : (dayIdx % 2 === 0 ? '#f8fafc' : '#fff'),
-                          boxShadow: isSelectedCell(day, meal) ? '0 0 0 2px #3498db' : undefined
+                          background: isToday ? '#d1eaff' : '#fff',
+                          boxShadow: isToday ? '0 0 0 2px #3498db' : undefined,
+                          position: 'relative'
                         }}
                       >
+                        <div style={{ fontWeight: 700, color: '#3498db', marginBottom: 6 }}>{day}</div>
                         {cell ? (
-                          <div style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 8,
-                            alignItems: 'flex-start'
-                          }}>
-                            <span style={{
-                              fontWeight: 600,
-                              color: '#3498db',
-                              fontSize: 16,
-                              cursor: 'pointer',
-                              textDecoration: 'underline'
-                            }}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <span
+                              style={{
+                                fontWeight: 600,
+                                color: '#3498db',
+                                fontSize: 15,
+                                cursor: 'pointer',
+                                textDecoration: 'underline'
+                              }}
                               tabIndex={0}
                               onClick={() => viewRecipe(cell.recipeId)}
                               onKeyDown={e => {
@@ -266,55 +305,38 @@ export default function MealPlanner() {
                             >
                               {cell.recipeName}
                             </span>
-                            <div style={{ display: 'flex', gap: 8 }}>
-                              <button
-                                style={{
-                                  fontSize: 13,
-                                  color: '#fff',
-                                  background: '#4CAF50',
-                                  border: 'none',
-                                  borderRadius: 6,
-                                  padding: '6px 14px',
-                                  cursor: 'pointer',
-                                  fontWeight: 600,
-                                  boxShadow: '0 1px 4px #0001'
-                                }}
-                                onClick={() => addToGoogleCalendar(day, meal, cell.recipe)}
-                              >
-                                Add to Google Calendar
-                              </button>
-                              <button
-                                style={{
-                                  fontSize: 13,
-                                  color: '#fff',
-                                  background: '#e74c3c',
-                                  border: 'none',
-                                  borderRadius: 6,
-                                  padding: '6px 14px',
-                                  cursor: 'pointer',
-                                  fontWeight: 600,
-                                  boxShadow: '0 1px 4px #0001'
-                                }}
-                                onClick={() => removeRecipe(day, meal)}
-                              >
-                                Remove
-                              </button>
-                            </div>
+                            <button
+                              style={{
+                                fontSize: 12,
+                                color: '#e74c3c',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: 0,
+                                textAlign: 'left'
+                              }}
+                              onClick={() => removeRecipe(dateKey)}
+                            >
+                              Remove
+                            </button>
                           </div>
                         ) : (
                           <button
                             style={{
-                              fontSize: 14,
+                              fontSize: 13,
                               color: '#3498db',
                               background: 'none',
                               border: '1px dashed #3498db',
                               borderRadius: 8,
-                              padding: '10px 18px',
+                              padding: '6px 12px',
                               cursor: 'pointer',
                               fontWeight: 600,
-                              transition: 'background 0.2s'
+                              marginTop: 4
                             }}
-                            onClick={() => handleCellClick(day, meal)}
+                            onClick={() => {
+                              setSelectedDate(dateKey);
+                              setShowRecipePicker(true);
+                            }}
                           >
                             Assign Recipe
                           </button>
@@ -327,8 +349,6 @@ export default function MealPlanner() {
             </tbody>
           </table>
         </div>
-
-        {/* Recipe Picker Modal */}
         {showRecipePicker && (
           <MealPlannerModal
             ref={modalRef}

@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import supabase from '../services/supabaseClient';
 import './Navbar.css';
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [recipeDropdown, setRecipeDropdown] = useState(false);
   const [profileDropdown, setProfileDropdown] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showServiceDropdown, setShowServiceDropdown] = useState(false);
   const navbarRef = useRef(null);
   
   useEffect(() => {
@@ -22,6 +25,11 @@ export default function Navbar() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Close dropdown on navigation
+  useEffect(() => {
+    setShowServiceDropdown(false);
+  }, [location.pathname]);
 
   const handleSignOut = async () => {
     try {
@@ -55,7 +63,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="navbar" ref={navbarRef}>
+    <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-logo" onClick={closeDropdowns}>
           Recipe<span>Hub</span>
@@ -87,11 +95,61 @@ export default function Navbar() {
               </div>
             )}
           </div>
+          <div
+            className="dropdown"
+            onMouseEnter={() => setShowDropdown(true)}
+            onMouseLeave={() => setShowDropdown(false)}
+            tabIndex={0}
+            onFocus={() => setShowDropdown(true)}
+            onBlur={() => setShowDropdown(false)}
+          >
+            <button className="dropdown-toggle" aria-haspopup="true" aria-expanded={showDropdown}>
+              Planner
+              <span className={`arrow ${showDropdown ? 'up' : 'down'}`}></span>
+            </button>
+            {showDropdown && (
+              <div className="dropdown-menu">
+                <Link to="/meal-planner" className="dropdown-item">
+                  Meal Planner
+                </Link>
+                {/* Add more planner-related links here if needed */}
+              </div>
+            )}
+          </div>
+          <div
+            className="dropdown"
+            onMouseEnter={() => setShowServiceDropdown(true)}
+            onMouseLeave={() => setShowServiceDropdown(false)}
+            tabIndex={0}
+            onFocus={() => setShowServiceDropdown(true)}
+            onBlur={() => setShowServiceDropdown(false)}
+          >
+            <button
+              className="dropdown-toggle"
+              aria-haspopup="true"
+              aria-expanded={showServiceDropdown}
+              type="button"
+            >
+              Service
+              <span className={`arrow ${showServiceDropdown ? 'up' : 'down'}`}></span>
+            </button>
+            {showServiceDropdown && (
+              <div className="dropdown-menu">
+                <Link
+                  to="/meal-planner"
+                  className="dropdown-item"
+                  onClick={() => setShowServiceDropdown(false)}
+                >
+                  Meal Planner
+                </Link>
+                {/* ...other service links if any... */}
+              </div>
+            )}
+          </div>
           <Link to="/subscription" className="nav-link premium-link" onClick={closeDropdowns}>
             SUBSCRIPTION
             <span className="premium-badge">PRO</span>
           </Link>
-          <Link to="/service" className="nav-link" onClick={closeDropdowns}>SERVICE</Link>
           <Link to="/blog" className="nav-link" onClick={closeDropdowns}>BLOG</Link>
           <Link to="/contact" className="nav-link" onClick={closeDropdowns}>CONTACT</Link>
         </div>
@@ -111,4 +169,4 @@ export default function Navbar() {
       </div>
     </nav>
   );
-} 
+}
