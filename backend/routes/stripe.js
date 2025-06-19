@@ -1,43 +1,28 @@
 const express = require('express');
-const asyncHandler = require('express-async-handler');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const router = express.Router();
+const Stripe = require('stripe');
+const stripe = Stripe(process.env.VITE_STRIPE_SECRET_KEY);
 
-// Create a checkout session
-router.post('/create-checkout-session', asyncHandler(async (req, res) => {
-  const { priceId, successUrl, cancelUrl } = req.body;
-
-  try {
+router.post('/create-checkout-session', async (req, res) => {
+    try {
+    const { email, priceId } = req.body;
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
+      mode: 'subscription',
       line_items: [
         {
-          price: priceId,
+          price: priceId, // Use the priceId sent from the frontend
           quantity: 1,
         },
       ],
-      mode: 'subscription',
-      success_url: successUrl,
-      cancel_url: cancelUrl,
+      success_url: `${process.env.CLIENT_URL}/subscription-success`,
+      cancel_url: `${process.env.CLIENT_URL}/subscription-cancel`,
+      customer_email: req.body.email,
     });
-
-    res.json({ sessionId: session.id });
-  } catch (error) {
-    console.error('Error creating checkout session:', error);
-    res.status(500).json({ error: error.message });
+    res.json({ url: session.url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-}));
+});
 
-// Get subscription status
-router.get('/subscription-status', asyncHandler(async (req, res) => {
-  // TODO: Implement subscription status check
-  res.json({ plan: null });
-}));
-
-// Cancel subscription
-router.post('/cancel-subscription', asyncHandler(async (req, res) => {
-  // TODO: Implement subscription cancellation
-  res.json({ success: true });
-}));
-
-module.exports = router; 
+module.exports = router;
