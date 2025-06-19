@@ -5,7 +5,7 @@ import supabase from '../services/supabaseClient';
 import './RecipeForm.css';
 
 // Enums from database
-const DIFFICULTY_LEVELS = ['easy', 'medium', 'hard', 'expert'];
+const DIFFICULTY_LEVELS = ['Easy', 'Medium', 'Hard'];
 const CUISINE_TYPES = [
   'american', 'italian', 'chinese', 'japanese', 'mexican', 'indian',
   'french', 'thai', 'mediterranean', 'korean', 'vietnamese', 'other'
