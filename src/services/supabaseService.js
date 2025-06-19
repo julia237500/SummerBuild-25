@@ -34,10 +34,10 @@ export const supabaseService = {
       }
 
       // Validate cooking level
-      const validLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
+      const validLevels = ['Easy', 'Medium', 'Hard'];
       if (!validLevels.includes(profileData.cooking_level)) {
-        console.log('Invalid cooking level, defaulting to Beginner');
-        profileData.cooking_level = 'Beginner';
+        console.log('Invalid cooking level, defaulting to Easy');
+        profileData.cooking_level = 'Easy';
       }
 
       // Ensure clean data structure with only allowed fields

@@ -54,7 +54,7 @@ export default function RecipeDetail() {
           prep_time_minutes: Math.floor(spoonacularRecipe.readyInMinutes / 2),
           cook_time_minutes: Math.ceil(spoonacularRecipe.readyInMinutes / 2),
           servings: spoonacularRecipe.servings,
-          difficulty: spoonacularRecipe.difficulty || 'medium',
+          difficulty: spoonacularRecipe.difficulty || 'Easy',
           cuisine_type: spoonacularRecipe.cuisines?.[0] || 'Various',
           ingredients: spoonacularRecipe.extendedIngredients?.map(ing => ({
             item: ing.name,

@@ -33,7 +33,7 @@ export default function RecipeForm() {
     prep_time_minutes: '',
     cook_time_minutes: '',
     servings: '',
-    difficulty: 'medium',
+    difficulty: 'Medium',
     cuisine_type: 'other',
     calories_per_serving: '',
     image_url: '',
