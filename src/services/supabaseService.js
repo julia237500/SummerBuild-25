@@ -120,7 +120,13 @@ export const supabaseService = {
       if (urlError) throw urlError;
 
       // Update profile with new avatar URL
-      await supabaseService.updateProfile({ avatar_url: publicUrl });
+      const profile = await supabaseService.getCurrentUser();
+
+      await supabaseService.updateProfile({
+        full_name: profile.full_name,
+        cooking_level: profile.cooking_level || 'Beginner',
+        avatar_url: publicUrl,
+      });
 
       return publicUrl;
     } catch (error) {
@@ -175,8 +181,8 @@ export const supabaseService = {
         .from('user_preferences')
         .upsert({
           user_id: user.id,
-          favorite_cuisines: preferences.cuisines,
-          dietary_preferences: preferences.dietary,
+          favorite_cuisines: preferences.favorite_cuisines,
+          dietary_preferences: preferences.dietary_preferences,
           updated_at: new Date().toISOString()
         })
         .select()

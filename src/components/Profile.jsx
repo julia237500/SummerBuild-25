@@ -97,8 +97,8 @@ export default function Profile() {
         cooking_level: userProfile?.cooking_level || 'Beginner',
         avatar_url: userProfile?.avatar_url || '',
         preferences: {
-          cuisines: Array.isArray(userPreferences?.favorite_cuisines) ? userPreferences.favorite_cuisines : [],
-          dietary: Array.isArray(userPreferences?.dietary_preferences) ? userPreferences.dietary_preferences : []
+          favorite_cuisines: Array.isArray(userPreferences?.favorite_cuisines) ? userPreferences.favorite_cuisines : [],
+          dietary_preferences: Array.isArray(userPreferences?.dietary_preferences) ? userPreferences.dietary_preferences : []
         }
       };
       
@@ -425,6 +425,8 @@ export default function Profile() {
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
+
+    console.log("🚀 Saving preferences:", formData.preferences);
 
     try {
       const saved = await supabaseService.updateUserPreferences({
