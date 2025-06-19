@@ -48,6 +48,18 @@ function App() {
     }
   }, []);
 
+  // Helper: check if current route is admin
+  const isAdminRoute = () => {
+    // Use window.location.pathname since AppRoutes is rendered inside Router
+    const path = window.location.pathname;
+    return (
+      path.startsWith('/admin') ||
+      path === '/admin' ||
+      path === '/admin/login' ||
+      path === '/admin/dashboard'
+    );
+  };
+
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -67,7 +79,8 @@ function App() {
   return (
     <Router>
       <div className="app">
-        {session && <Navbar />}
+        {/* Only show Navbar if NOT on admin pages */}
+        {!isAdminRoute() && session && <Navbar />}
         <main className="main-content">
           <AppRoutes />
         </main>

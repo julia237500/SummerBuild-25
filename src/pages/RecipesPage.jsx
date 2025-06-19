@@ -232,42 +232,8 @@ export default function RecipesPage() {
             <CategoryBarChart data={categoryDist} />
             <div style={{ marginTop: 32 }}>
               <h3 style={{ fontSize: 18, marginBottom: 12 }}>Spoonacular Categories</h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse', background: '#f9f9f9', borderRadius: 8 }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 700, color: '#222c36' }}>Category</th>
-                    <th style={{ textAlign: 'right', padding: '8px 12px', fontWeight: 700, color: '#222c36' }}># Recipes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {spoonacularCategories.length === 0 ? (
-                    <tr>
-                      <td colSpan={2} style={{ textAlign: 'center', color: '#888', padding: 16 }}>Loading Spoonacular categories...</td>
-                    </tr>
-                  ) : (
-                    spoonacularCategories.map((cat, i) => (
-                      <tr key={i}>
-                        <td style={{ padding: '8px 12px', borderBottom: '1px solid #eee' }}>{cat.name}</td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right', borderBottom: '1px solid #eee' }}>{cat.count.toLocaleString()}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+              <SpoonacularCategoryTable />
             </div>
-          </div>
-        </SectionCard>
-
-        {/* Spoonacular API Usage */}
-        <SectionCard title="Spoonacular API Usage (Last 7 Days)">
-          <div style={{ background: '#f9f9f9', borderRadius: 8, padding: 24 }}>
-            {apiLoading ? (
-              <div>Loading API usage...</div>
-            ) : apiUsage.length === 0 ? (
-              <div style={{ color: '#888' }}>No API usage data available.</div>
-            ) : (
-              <ApiUsageChart data={apiUsage} />
-            )}
           </div>
         </SectionCard>
       </div>
@@ -395,5 +361,69 @@ function ApiUsageChart({ data }) {
       <line x1={pad} y1={height - pad - ((150 / max) * (height - 2 * pad))} x2={width - pad} y2={height - pad - ((150 / max) * (height - 2 * pad))} stroke="#e74c3c" strokeDasharray="6,4" strokeWidth="2" />
       <text x={width - pad + 5} y={height - pad - ((150 / max) * (height - 2 * pad)) + 5} fontSize="12" fill="#e74c3c">150 limit</text>
     </svg>
+  );
+}
+
+// Spoonacular category table
+function SpoonacularCategoryTable() {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      setLoading(true);
+      try {
+        const apiKey = '2863f900ec384741b259f7931da49aae';
+        const results = [];
+        for (const cat of SPOONACULAR_CATEGORIES) {
+          const params = new URLSearchParams({
+            apiKey,
+            number: 1,
+            type: cat
+          });
+          const res = await fetch(`https://api.spoonacular.com/recipes/complexSearch?${params}`);
+          if (res.ok) {
+            const data = await res.json();
+            results.push({ name: cat.replace(/\b\w/g, l => l.toUpperCase()), count: data.totalResults || 0 });
+          } else {
+            results.push({ name: cat.replace(/\b\w/g, l => l.toUpperCase()), count: 0 });
+          }
+          // To avoid hitting rate limits, add a small delay between requests
+          await new Promise(r => setTimeout(r, 200));
+        }
+        setCategories(results);
+      } catch {
+        setCategories([]);
+      }
+      setLoading(false);
+    }
+    fetchCategories();
+  }, []);
+
+  if (loading) {
+    return <tr><td colSpan={2} style={{ textAlign: 'center', padding: 16 }}>Loading...</td></tr>;
+  }
+
+  if (categories.length === 0) {
+    return <tr><td colSpan={2} style={{ textAlign: 'center', color: '#888', padding: 16 }}>No data</td></tr>;
+  }
+
+  return (
+    <table style={{ width: '100%', borderCollapse: 'collapse', background: '#f9f9f9', borderRadius: 8 }}>
+      <thead>
+        <tr>
+          <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 700, color: '#222c36' }}>Category</th>
+          <th style={{ textAlign: 'right', padding: '8px 12px', fontWeight: 700, color: '#222c36' }}># Recipes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {categories.map((cat, i) => (
+          <tr key={i}>
+            <td style={{ padding: '8px 12px', borderBottom: '1px solid #eee' }}>{cat.name}</td>
+            <td style={{ padding: '8px 12px', textAlign: 'right', borderBottom: '1px solid #eee' }}>{cat.count.toLocaleString()}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

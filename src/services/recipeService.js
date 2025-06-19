@@ -381,5 +381,37 @@ export const recipeService = {
       console.error('Error testing storage access:', error);
       throw error;
     }
-  }
+  },
+
+  // Save meal plan for user
+  saveMealPlan: async (planner) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not found');
+    const { error } = await supabase
+      .from('meal_plans')
+      .upsert({
+        user_id: user.id,
+        name: 'Weekly Plan',
+        start_date: null,
+        end_date: null,
+        plan_data: planner,
+        updated_at: new Date().toISOString()
+      }, { onConflict: ['user_id', 'name'] });
+    if (error) throw error;
+    return true;
+  },
+
+  // Get meal plan for user
+  getMealPlan: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not found');
+    const { data, error } = await supabase
+      .from('meal_plans')
+      .select('plan_data')
+      .eq('user_id', user.id)
+      .eq('name', 'Weekly Plan')
+      .single();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data?.plan_data || {};
+  },
 };
