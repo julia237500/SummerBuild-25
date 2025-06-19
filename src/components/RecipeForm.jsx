@@ -33,7 +33,7 @@ export default function RecipeForm() {
     prep_time_minutes: '',
     cook_time_minutes: '',
     servings: '',
-    difficulty: 'medium',
+    difficulty: 'Medium',
     cuisine_type: 'other',
     calories_per_serving: '',
     image_url: '',
@@ -588,8 +588,7 @@ export default function RecipeForm() {
           <button type="submit" className="submit-btn" disabled={loading}>
             {loading ? 'Saving...' : isEditing ? 'Update Recipe' : 'Create Recipe'}
           </button>
-        </div>
-      </form>
+        </div>      </form>
     </div>
   );
-} 
+}

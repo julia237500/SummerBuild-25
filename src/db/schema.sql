@@ -380,3 +380,10 @@ insert into public.categories (name, slug, description) values
     ('Healthy', 'healthy', 'Nutritious and wholesome recipes'),
     ('Quick & Easy', 'quick-and-easy', 'Fast and simple recipes')
 on conflict (name) do nothing; 
+
+CREATE TABLE IF NOT EXISTS favourites (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  recipe_id UUID REFERENCES recipes(id),
+  created_at TIMESTAMP DEFAULT NOW()
+);

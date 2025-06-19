@@ -1,17 +1,23 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const app = express();
-require('dotenv').config();
+const { resetRecipeTable } = require('./controllers/devController');
 
+// Import route files
 const recipeRoutes = require('./routes/recipes');
-const stripeRoutes = require('./routes/stripe');
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Mount routes
 app.use('/api/recipes', recipeRoutes);
-app.use('/api', stripeRoutes);
 
 app.listen(5000, () => {
   console.log('Backend running on http://localhost:5000');
 });
+
+
+const favouritesRoutes = require('./routes/favourites');
+app.use('/api/favourites', favouritesRoutes);

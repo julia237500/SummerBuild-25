@@ -12,7 +12,8 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
 
   const {
     id,
-    title,
+    name,
+    title, // support both name and title
     description,
     image_url,
     cooking_time,
@@ -22,7 +23,6 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
     cuisine_type,
     calories_per_serving,
     is_private,
-    is_favorite,
     average_rating,
     total_ratings,
     dietary_restrictions = [],
@@ -34,6 +34,7 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
   const totalTime = prep_time_minutes && cook_time_minutes 
     ? prep_time_minutes + cook_time_minutes 
     : cooking_time;
+
   const handleFavoriteClick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -53,6 +54,7 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
       setIsLoading(false);
     }
   };
+
   const getDifficultyColor = (level) => {
     const colors = {
       easy: 'bg-green-500',
@@ -63,10 +65,10 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
   };
 
   return (
-    <Link to={`/recipe/${id}`} className="recipe-card">
+    <Link to={`/recipe/${id.toString()}`} className="recipe-card">
       <div className="recipe-image-container">
         {image_url ? (
-          <img src={image_url} alt={title} className="recipe-image" />
+          <img src={image_url} alt={name || title} className="recipe-image" />
         ) : (
           <div className="recipe-image-placeholder">
             <GiCookingPot className="placeholder-icon" />
@@ -87,7 +89,8 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
           <div className="error-message" role="alert">
             {error}
           </div>
-        )}        {is_private && (
+        )}
+        {is_private && (
           <div className="absolute top-2 left-2 bg-gray-800 bg-opacity-75 p-1 rounded-full">
             <FaLock className="text-white" />
           </div>
@@ -95,10 +98,12 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
       </div>
 
       <div className="recipe-content">
-        <h3 className="recipe-title">{title}</h3>
+        <h3 className="recipe-title">{name || title}</h3>
         {description && (
           <p className="recipe-description">{description}</p>
-        )}        <div className="recipe-meta">
+        )}
+
+        <div className="recipe-meta">
           <div className="recipe-stat">
             <FaClock className="icon" />
             <span>{totalTime} mins</span>
@@ -143,8 +148,17 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
                 </div>
               )}
             </div>
-          )}        </div>
+          )}
+        </div>
       </div>
     </Link>
   );
 }
+
+
+const handleFavourite = async () => {
+  await axios.post('/api/favourites', { user_id, recipe_id: recipe.id });
+  // Optionally update UI
+};
+// ...in your render:
+<button onClick={handleFavourite}>Favourite</button>

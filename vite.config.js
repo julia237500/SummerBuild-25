@@ -8,6 +8,12 @@ export default defineConfig({
   build: {
     outDir: 'dist',
   },
+  server: {
+    port: 5173,
+    host: true,
+    strictPort: true,
+    open: true
+  },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
