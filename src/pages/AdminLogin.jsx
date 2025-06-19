@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import adminBg from '../assets/admin-bg.jpeg';
+import supabase from '../services/supabaseClient';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -8,9 +8,25 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (email === 'admin@abc.com' && password === 'Recipehub123$') {
+    setError('');
+    // Only allow login for admin@abc.com
+    if (email.trim().toLowerCase() !== 'admin@abc.com') {
+      setError('Invalid login credentials');
+      return;
+    }
+    // Fetch admin account from Supabase
+    const { data, error: fetchError } = await supabase
+      .from('admin_accounts')
+      .select('email,password')
+      .eq('email', 'admin@abc.com')
+      .single();
+    if (fetchError || !data) {
+      setError('Invalid login credentials');
+      return;
+    }
+    if (password === data.password) {
       navigate('/admin/dashboard');
     } else {
       setError('Invalid login credentials');
@@ -25,7 +41,7 @@ export default function AdminLogin() {
         left: 0,
         width: '100vw',
         height: '100vh',
-        backgroundImage: `url(${adminBg})`,
+        background: '#f4f6fa',
         backgroundPosition: 'center',
         margin: 0,
         padding: 0,

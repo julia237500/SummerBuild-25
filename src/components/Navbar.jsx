@@ -104,7 +104,7 @@ export default function Navbar() {
             onBlur={() => setShowDropdown(false)}
           >
             <button className="dropdown-toggle" aria-haspopup="true" aria-expanded={showDropdown}>
-              Planner
+              PLANNER
               <span className={`arrow ${showDropdown ? 'up' : 'down'}`}></span>
             </button>
             {showDropdown && (
@@ -116,36 +116,7 @@ export default function Navbar() {
               </div>
             )}
           </div>
-          <div
-            className="dropdown"
-            onMouseEnter={() => setShowServiceDropdown(true)}
-            onMouseLeave={() => setShowServiceDropdown(false)}
-            tabIndex={0}
-            onFocus={() => setShowServiceDropdown(true)}
-            onBlur={() => setShowServiceDropdown(false)}
-          >
-            <button
-              className="dropdown-toggle"
-              aria-haspopup="true"
-              aria-expanded={showServiceDropdown}
-              type="button"
-            >
-              Service
-              <span className={`arrow ${showServiceDropdown ? 'up' : 'down'}`}></span>
-            </button>
-            {showServiceDropdown && (
-              <div className="dropdown-menu">
-                <Link
-                  to="/meal-planner"
-                  className="dropdown-item"
-                  onClick={() => setShowServiceDropdown(false)}
-                >
-                  Meal Planner
-                </Link>
-                {/* ...other service links if any... */}
-              </div>
-            )}
-          </div>
+  
           <Link to="/subscription" className="nav-link premium-link" onClick={closeDropdowns}>
             SUBSCRIPTION
             <span className="premium-badge">PRO</span>
@@ -170,3 +141,10 @@ export default function Navbar() {
     </nav>
   );
 }
+    <nav>
+      <div>
+        <button>
+          Sign Out
+        </button>
+      </div>
+    </nav>

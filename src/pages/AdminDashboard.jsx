@@ -6,6 +6,7 @@ import RecipesPage from './RecipesPage';
 import RevenuePage from './RevenuePage';
 import AdminProfilePage from './AdminProfilePage';
 import DashboardPage from './DashboardPage'; // Import DashboardPage
+import FeedbackPage from './FeedbackPage'; // Add this import
 
 const SIDEBAR_ITEMS = [
   { key: 'overview', label: 'Overview', icon: '🏠' },
@@ -13,6 +14,7 @@ const SIDEBAR_ITEMS = [
   { key: 'users', label: 'Users', icon: '👥' },
   { key: 'recipes', label: 'Recipes', icon: '🍲' },
   { key: 'revenue', label: 'Revenue', icon: '💰' },
+  { key: 'feedback', label: 'Feedback', icon: '💬' }, // Add Feedback tab
   { key: 'admin', label: 'Admin Profile', icon: '👤' }
 ];
 
@@ -128,6 +130,7 @@ export default function AdminDashboard() {
         {activePage === 'users' && <UsersPage />}
         {activePage === 'recipes' && <RecipesPage />}
         {activePage === 'revenue' && <RevenuePage />}
+        {activePage === 'feedback' && <FeedbackPage />} {/* Show feedback */}
         {activePage === 'admin' && <AdminProfilePage />}
       </main>
     </div>

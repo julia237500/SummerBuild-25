@@ -13,6 +13,7 @@ import AdminLogin from '../pages/AdminLogin';
 import AdminDashboard from '../pages/AdminDashboard';
 import SubscriptionPage from '../SubscriptionPage';
 import MealPlanner from '../pages/MealPlanner';
+import ContactPage from '../pages/ContactPage';
 
 // Route wrapper for authenticated routes
 const PrivateRoute = ({ children }) => {
@@ -104,7 +105,7 @@ export default function AppRoutes() {
           </PrivateRoute>
         }
       />
-
+      <Route path="/contact" element={<ContactPage />} />
       {/* Admin routes */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />

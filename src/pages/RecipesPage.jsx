@@ -79,14 +79,6 @@ export default function RecipesPage() {
         .limit(10);
       setMostViewed(viewed?.filter(r => r.views && r.views > 0) || []);
 
-      // Most liked/bookmarked recipes (top 10)
-      const { data: liked } = await supabase
-        .from('recipes')
-        .select('id, name, image_url, total_likes')
-        .order('total_likes', { ascending: false })
-        .limit(10);
-      setMostLiked(liked?.filter(r => r.total_likes && r.total_likes > 0) || []);
-
       // Top 10 most used ingredients (aggregate)
       const { data: allRecipes } = await supabase
         .from('recipes')
@@ -201,11 +193,6 @@ export default function RecipesPage() {
           <RecipeCardList data={mostViewed} type="views" />
         </SectionCard>
 
-        {/* Most liked/bookmarked recipes */}
-        <SectionCard title="Top 10 Most Liked Recipes">
-          <RecipeCardList data={mostLiked} type="likes" />
-        </SectionCard>
-
         {/* Top 10 most used ingredients */}
         <SectionCard title="Top 10 Most Used Ingredients">
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'flex-start' }}>
@@ -229,7 +216,6 @@ export default function RecipesPage() {
         {/* Recipe distribution by category */}
         <SectionCard title="Recipe Distribution by Category">
           <div style={{ width: '100%', maxWidth: 700, margin: '0 auto' }}>
-            <CategoryBarChart data={categoryDist} />
             <div style={{ marginTop: 32 }}>
               <h3 style={{ fontSize: 18, marginBottom: 12 }}>Spoonacular Categories</h3>
               <SpoonacularCategoryTable />
