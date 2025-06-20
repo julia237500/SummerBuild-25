@@ -1,5 +1,10 @@
-const API_KEY = '2863f900ec384741b259f7931da49aae';
-const BASE_URL = 'https://api.spoonacular.com/recipes';
+const API_KEY = '97d0f4a15fmsh7c7a1df5962d67ep17df05jsnb60fa2136237';
+const BASE_URL = 'https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com';
+
+const headers = {
+  'x-rapidapi-host': 'spoonacular-recipe-food-nutrition-v1.p.rapidapi.com',
+  'x-rapidapi-key': API_KEY,
+};
 
 const handleResponse = async (response) => {
   if (!response.ok) {
@@ -21,13 +26,13 @@ export const spoonacularApi = {
     try {
       await logApiUsage();
       const params = new URLSearchParams({
-        apiKey: API_KEY,
         query: query,
         number: number
       });
 
       const response = await fetch(
-        `https://api.spoonacular.com/recipes/autocomplete?${params}`
+        `${BASE_URL}/recipes/autocomplete?${params}`,
+        { headers }
       );
       return handleResponse(response);
     } catch (error) {
@@ -41,7 +46,6 @@ export const spoonacularApi = {
     try {
       await logApiUsage();
       const params = new URLSearchParams({
-        apiKey: API_KEY,
         number: limit,
         addRecipeInformation: true,
         sort: sortBy || 'popularity', // Default sort by popularity if not specified
@@ -51,7 +55,7 @@ export const spoonacularApi = {
         params.append('query', query);
       }
 
-      const response = await fetch(`${BASE_URL}/complexSearch?${params}`);
+      const response = await fetch(`${BASE_URL}/recipes/complexSearch?${params}`, { headers });
       return handleResponse(response);
     } catch (error) {
       console.error('Error searching recipes:', error);
@@ -64,11 +68,10 @@ export const spoonacularApi = {
       await logApiUsage();
       console.log('SpoonacularAPI: Fetching recipe with ID:', id);
       const params = new URLSearchParams({
-        apiKey: API_KEY,
         includeNutrition: true,
       });
 
-      const response = await fetch(`${BASE_URL}/${id}/information?${params}`);
+      const response = await fetch(`${BASE_URL}/recipes/${id}/information?${params}`, { headers });
       if (!response.ok) {
         console.error('SpoonacularAPI: Error response:', response.status, response.statusText);
         if (response.status === 404) {
@@ -90,8 +93,12 @@ export const spoonacularApi = {
   getSimilarRecipes: async (id, number = 4) => {
     try {
       await logApiUsage();
+      const params = new URLSearchParams({
+        number: number,
+      });
       const response = await fetch(
-        `${BASE_URL}/${id}/similar?apiKey=${API_KEY}&number=${number}`
+        `${BASE_URL}/recipes/${id}/similar?${params}`,
+        { headers }
       );
       return handleResponse(response);
     } catch (error) {
@@ -105,12 +112,11 @@ export const spoonacularApi = {
     try {
       await logApiUsage();
       const params = new URLSearchParams({
-        apiKey: API_KEY,
         number: number,
         tags: tags,
       });
 
-      const response = await fetch(`${BASE_URL}/random?${params}`);
+      const response = await fetch(`${BASE_URL}/recipes/random?${params}`, { headers });
       return handleResponse(response);
     } catch (error) {
       console.error('Error fetching random recipes:', error);
@@ -122,8 +128,12 @@ export const spoonacularApi = {
   getRecipeInstructions: async (id) => {
     try {
       await logApiUsage();
+      const params = new URLSearchParams({
+        stepBreakdown: true,
+      });
       const response = await fetch(
-        `${BASE_URL}/${id}/analyzedInstructions?apiKey=${API_KEY}&stepBreakdown=true`
+        `${BASE_URL}/recipes/${id}/analyzedInstructions?${params}`,
+        { headers }
       );
       return handleResponse(response);
     } catch (error) {
@@ -137,12 +147,12 @@ export const spoonacularApi = {
     try {
       await logApiUsage();
       const params = new URLSearchParams({
-        apiKey: API_KEY,
         stepBreakdown: true,
       });
 
       const response = await fetch(
-        `${BASE_URL}/${id}/analyzedInstructions?${params}`
+        `${BASE_URL}/recipes/${id}/analyzedInstructions?${params}`,
+        { headers }
       );
       const data = await handleResponse(response);
       
@@ -159,12 +169,12 @@ export const spoonacularApi = {
     try {
       await logApiUsage();
       const params = new URLSearchParams({
-        apiKey: API_KEY,
         ingredientName: ingredientName
       });
 
       const response = await fetch(
-        `https://api.spoonacular.com/food/ingredients/substitutes?${params}`
+        `${BASE_URL}/food/ingredients/substitutes?${params}`,
+        { headers }
       );
       return handleResponse(response);
     } catch (error) {
