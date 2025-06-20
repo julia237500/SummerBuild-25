@@ -80,6 +80,7 @@ export default function Navbar() {
               <div className="dropdown-menu">
                 <Link to="/search" className="dropdown-item" onClick={closeDropdowns}>Search Recipes</Link>
                 <Link to="/my-recipes" className="dropdown-item" onClick={closeDropdowns}>My Recipes</Link>
+                <Link to="/ingredient-substitutes" className="dropdown-item" onClick={closeDropdowns}>Ingredient Substitutes</Link>
               </div>
             )}
           </div>

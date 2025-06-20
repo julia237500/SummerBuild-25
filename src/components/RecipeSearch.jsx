@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { spoonacularApi } from '../services/spoonacularApi';
+import RecipeCard from './RecipeCard';
 import './RecipeSearch.css';
 
 export default function RecipeSearch() {
@@ -56,7 +57,29 @@ export default function RecipeSearch() {
       setError(null);
       setShowSuggestions(false);
       const data = await spoonacularApi.searchRecipes(query);
-      setRecipes(data.results);
+      
+      // Format recipes to match RecipeCard component expectations
+      const formattedRecipes = data.results.map(recipe => ({
+        id: recipe.id,
+        title: recipe.title,
+        description: recipe.summary?.slice(0, 150) + '...',
+        image_url: recipe.image,
+        cooking_time: recipe.readyInMinutes,
+        prep_time_minutes: Math.floor(recipe.readyInMinutes / 2),
+        cook_time_minutes: Math.ceil(recipe.readyInMinutes / 2),
+        difficulty: recipe.difficulty || 'medium',
+        cuisine_type: recipe.cuisines?.[0] || 'Various',
+        calories: recipe.nutrition?.nutrients?.find(n => n.name === 'Calories')?.amount || '562',
+        protein: recipe.nutrition?.nutrients?.find(n => n.name === 'Protein')?.amount + 'g' || '13g',
+        carbs: recipe.nutrition?.nutrients?.find(n => n.name === 'Carbohydrates')?.amount + 'g' || '22g',
+        is_private: false,
+        is_favorite: false,
+        average_rating: recipe.spoonacularScore ? (recipe.spoonacularScore / 20) : 4.5,
+        total_ratings: recipe.aggregateLikes || 0,
+        dietary_restrictions: recipe.diets || []
+      }));
+      
+      setRecipes(formattedRecipes);
     } catch (err) {
       setError('Failed to search recipes. Please try again.');
       console.error(err);
@@ -72,7 +95,29 @@ export default function RecipeSearch() {
       setLoading(true);
       setError(null);
       const data = await spoonacularApi.searchRecipes(suggestion.title);
-      setRecipes(data.results);
+      
+      // Format recipes to match RecipeCard component expectations
+      const formattedRecipes = data.results.map(recipe => ({
+        id: recipe.id,
+        title: recipe.title,
+        description: recipe.summary?.slice(0, 150) + '...',
+        image_url: recipe.image,
+        cooking_time: recipe.readyInMinutes,
+        prep_time_minutes: Math.floor(recipe.readyInMinutes / 2),
+        cook_time_minutes: Math.ceil(recipe.readyInMinutes / 2),
+        difficulty: recipe.difficulty || 'medium',
+        cuisine_type: recipe.cuisines?.[0] || 'Various',
+        calories: recipe.nutrition?.nutrients?.find(n => n.name === 'Calories')?.amount || '562',
+        protein: recipe.nutrition?.nutrients?.find(n => n.name === 'Protein')?.amount + 'g' || '13g',
+        carbs: recipe.nutrition?.nutrients?.find(n => n.name === 'Carbohydrates')?.amount + 'g' || '22g',
+        is_private: false,
+        is_favorite: false,
+        average_rating: recipe.spoonacularScore ? (recipe.spoonacularScore / 20) : 4.5,
+        total_ratings: recipe.aggregateLikes || 0,
+        dietary_restrictions: recipe.diets || []
+      }));
+      
+      setRecipes(formattedRecipes);
     } catch (err) {
       setError('Failed to search recipes. Please try again.');
       console.error(err);
@@ -81,8 +126,15 @@ export default function RecipeSearch() {
     }
   };
 
-  const handleRecipeClick = (recipeId) => {
-    navigate(`/recipe/${recipeId}`);
+  const handleFavoriteToggle = (recipeId, isFavorite) => {
+    // Update the recipe's favorite status in the local state
+    setRecipes(prevRecipes =>
+      prevRecipes.map(recipe =>
+        recipe.id === recipeId
+          ? { ...recipe, is_favorite: isFavorite }
+          : recipe
+      )
+    );
   };
 
   return (
@@ -120,20 +172,12 @@ export default function RecipeSearch() {
 
       <div className="recipes-grid">
         {recipes.map((recipe) => (
-          <div
+          <RecipeCard
             key={recipe.id}
-            className="recipe-card"
-            onClick={() => handleRecipeClick(recipe.id)}
-            role="button"
-            tabIndex={0}
-          >
-            <img src={recipe.image} alt={recipe.title} className="recipe-image" />
-            <h3 className="recipe-title">{recipe.title}</h3>
-            <div className="recipe-info">
-              <span>Ready in {recipe.readyInMinutes} minutes</span>
-              <span>{recipe.servings} servings</span>
-            </div>
-          </div>
+            recipe={recipe}
+            showActions={true}
+            onFavoriteToggle={handleFavoriteToggle}
+          />
         ))}
       </div>
     </div>

@@ -7,6 +7,7 @@ import MyRecipes from '../components/MyRecipes';
 import NewRecipe from '../pages/NewRecipe';
 import RecipeDetail from '../pages/RecipeDetail';
 import RecipeSearch from '../components/RecipeSearch';
+import IngredientSubstitutes from '../components/IngredientSubstitutes';
 import Favorites from '../components/Favorites';
 import Profile from '../components/Profile';
 import AdminLogin from '../pages/AdminLogin';
@@ -70,6 +71,14 @@ export default function AppRoutes() {
         element={
           <PrivateRoute>
             <RecipeSearch />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/ingredient-substitutes"
+        element={
+          <PrivateRoute>
+            <IngredientSubstitutes />
           </PrivateRoute>
         }
       />

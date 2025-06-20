@@ -2,6 +2,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import supabase from './services/supabaseClient';
 import Navbar from './components/Navbar';
+import Chatbot from './components/Chatbot';
 import AppRoutes from './routes/AppRoutes';
 import './App.css';
 
@@ -84,6 +85,8 @@ function App() {
         <main className="main-content">
           <AppRoutes />
         </main>
+        {/* Show Chatbot on all pages except admin pages */}
+        {!isAdminRoute() && <Chatbot />}
       </div>
     </Router>
   );
