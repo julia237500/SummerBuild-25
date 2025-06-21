@@ -195,6 +195,19 @@ export const supabaseService = {
       throw error;
     }
   },
+
+  fetchFavoriteRecipes: async (userId) => {
+    const { data, error } = await supabase
+      .from('favorite_recipes')
+      .select('recipes!inner(*)') // assumes you've set up a foreign key to recipes
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error fetching favorites:', error);
+      return [];
+    }
+    return data; // this will be an array of recipe objects
+  },
  
   // Get user activity
   getUserActivity: async () => {
