@@ -12,7 +12,10 @@ export default defineConfig({
     port: 5173,
     host: true,
     strictPort: true,
-    open: true
+    open: true,
+    proxy: {
+      '/api': 'http://localhost:5000',
+    }
   },
   resolve: {
     alias: {

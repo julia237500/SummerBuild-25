@@ -23,8 +23,7 @@ app.use('/api/spoonacular', spoonacularRoutes);
 // Map root route to reset DB
 app.get('/', resetRecipeTable);
 
-const stripeRoutes = require('./routes/Stripe');
-app.use('/api/stripe', stripeRoutes);
+app.use('/api/stripe', require('./routes/Stripe'));
 
 // Start server
 app.listen(5000, () => {

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios');
 
 // Simple file-based log for API usage (for demo/dev)
 const USAGE_FILE = path.join(__dirname, '../spoonacular_usage.json');
@@ -48,6 +49,25 @@ router.post('/log', (req, res) => {
   usage[key] = (usage[key] || 0) + 1;
   writeUsage(usage);
   res.json({ success: true });
+});
+
+//Proxy endpoint to search recipes using Spoonacular API
+router.get('/search', async (req, res) => {
+  try {
+    const response = await axios.get(
+      'https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/complexSearch',
+      {
+        params: { query: req.query.query || 'pasta' }, // or use req.query.query from frontend
+        headers: {
+          'X-RapidAPI-Key': process.env.RAPIDAPI_KEY, // store your key in .env
+          'X-RapidAPI-Host': 'spoonacular-recipe-food-nutrition-v1.p.rapidapi.com'
+        }
+      }
+    );
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 module.exports = router;

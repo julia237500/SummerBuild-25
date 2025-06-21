@@ -6,6 +6,7 @@ import './MyRecipes.css';
 
 export default function MyRecipes() {
   const navigate = useNavigate();
+  <button onClick={() => navigate(`/my-recipes/edit/${recipe.id}`)}>Edit</button>
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -85,6 +86,9 @@ export default function MyRecipes() {
                   <span>Cook: {recipe.cook_time_minutes} min</span>
                 </div>
                 <div className="recipe-actions">
+                  <button onClick={() => navigate(`/my-recipes/${recipe.id}`)} className="view-btn">
+                    View
+                  </button>
                   <button onClick={() => handleEdit(recipe.id)} className="edit-btn">
                     Edit
                   </button>

@@ -19,7 +19,7 @@ export const stripeService = {
   createCheckoutSession: async (planType, billingCycle) => {
     try {
       // Call your backend to create a checkout session
-      const response = await fetch('/api/create-checkout-session', {
+      const response = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

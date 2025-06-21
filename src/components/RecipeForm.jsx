@@ -5,7 +5,7 @@ import supabase from '../services/supabaseClient';
 import './RecipeForm.css';
 
 // Enums from database
-const DIFFICULTY_LEVELS = ['easy', 'medium', 'hard', 'expert'];
+const DIFFICULTY_LEVELS = ['Easy', 'Medium', 'Hard', 'Expert'];
 const CUISINE_TYPES = [
   'american', 'italian', 'chinese', 'japanese', 'mexican', 'indian',
   'french', 'thai', 'mediterranean', 'korean', 'vietnamese', 'other'
@@ -33,7 +33,7 @@ export default function RecipeForm() {
     prep_time_minutes: '',
     cook_time_minutes: '',
     servings: '',
-    difficulty: 'medium',
+    difficulty: 'Medium',
     cuisine_type: 'other',
     calories_per_serving: '',
     image_url: '',
@@ -51,6 +51,12 @@ export default function RecipeForm() {
       loadRecipe();
     }
   }, [id]);
+
+  useEffect(() => {
+  if (isEditing && id) {
+    recipeService.getRecipeById(id, true).then(setRecipe);
+  }
+}, [isEditing, id]);
 
   const loadCategories = async () => {
     try {
@@ -197,62 +203,66 @@ export default function RecipeForm() {
   };
 
   const handleDietaryRestrictionChange = (restriction) => {
-    setRecipe(prev => ({
+  setRecipe(prev => {
+    const restrictions = Array.isArray(prev.dietary_restrictions)
+      ? prev.dietary_restrictions
+      : [];
+    return {
       ...prev,
-      dietary_restrictions: prev.dietary_restrictions.includes(restriction)
-        ? prev.dietary_restrictions.filter(r => r !== restriction)
-        : [...prev.dietary_restrictions, restriction]
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Upload image if new file is selected
-      let imageUrl = recipe.image_url;
-      if (imageFile) {
-        imageUrl = await uploadImage(imageFile);
-      }
-
-      // Generate slug from name
-      const slug = recipe.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-
-      // Filter out empty ingredients and instructions
-      const formattedRecipe = {
-        ...recipe,
-        slug,
-        image_url: imageUrl,
-        ingredients: recipe.ingredients.filter(ing => 
-          ing.item.trim() && ing.amount.trim() && ing.unit.trim()
-        ),
-        instructions: recipe.instructions.filter(inst => inst.text.trim()),
-        prep_time_minutes: parseInt(recipe.prep_time_minutes),
-        cook_time_minutes: parseInt(recipe.cook_time_minutes),
-        servings: parseInt(recipe.servings),
-        calories_per_serving: parseInt(recipe.calories_per_serving) || null
-      };
-
-      if (isEditing) {
-        await recipeService.updateRecipe(id, formattedRecipe);
-      } else {
-        await recipeService.createRecipe(formattedRecipe);
-      }
-
-      navigate('/my-recipes');
-    } catch (err) {
-      setError('Failed to save recipe. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-      setUploadProgress(0);
+      dietary_restrictions: restrictions.includes(restriction)
+        ? restrictions.filter(r => r !== restriction)
+        : [...restrictions, restriction]
+    };
+  });
+};
+  
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
+  try {
+    // Upload image if new file is selected
+    let imageUrl = recipe.image_url;
+    if (imageFile) {
+      imageUrl = await uploadImage(imageFile);
     }
-  };
+
+    // Generate slug from name
+    const slug = recipe.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+    // Filter out empty ingredients and instructions
+    const formattedRecipe = {
+      ...recipe,
+      slug,
+      image_url: imageUrl,
+      ingredients: recipe.ingredients.filter(ing =>
+        ing.item.trim() && ing.amount.trim() && ing.unit.trim()
+      ),
+      instructions: recipe.instructions.filter(inst => inst.text.trim()),
+      prep_time_minutes: parseInt(recipe.prep_time_minutes),
+      cook_time_minutes: parseInt(recipe.cook_time_minutes),
+      servings: parseInt(recipe.servings),
+      calories_per_serving: parseInt(recipe.calories_per_serving) || null
+    };
+
+    if (isEditing) {
+      await recipeService.updateRecipe(id, formattedRecipe);
+    } else {
+      await recipeService.createRecipe(formattedRecipe);
+    }
+
+    navigate('/my-recipes');
+  } catch (err) {
+    setError('Failed to save recipe. Please try again.');
+    console.error(err);
+  } finally {
+    setLoading(false);
+    setUploadProgress(0);
+  }
+};
 
   if (loading && isEditing) return <div className="loading">Loading recipe...</div>;
 
@@ -399,7 +409,7 @@ export default function RecipeForm() {
               <label key={restriction} className="checkbox-label">
                 <input
                   type="checkbox"
-                  checked={recipe.dietary_restrictions.includes(restriction)}
+                  checked={(recipe.dietary_restrictions || []).includes(restriction)}
                   onChange={() => handleDietaryRestrictionChange(restriction)}
                 />
                 {restriction.split('_').map(word => 

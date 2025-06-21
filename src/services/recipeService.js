@@ -1,4 +1,5 @@
 import supabase from './supabaseClient';
+import axios from 'axios';
 
 export const recipeService = {
   // Get all recipes (public)
@@ -99,7 +100,6 @@ export const recipeService = {
       throw error;
     }
   },
-
   // Create a new recipe
   async createRecipe(recipe) {
     try {

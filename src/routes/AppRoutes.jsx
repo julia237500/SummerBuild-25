@@ -11,8 +11,9 @@ import Favorites from '../components/Favorites';
 import Profile from '../components/Profile';
 import AdminLogin from '../pages/AdminLogin';
 import AdminDashboard from '../pages/AdminDashboard';
-import SubscriptionPage from '../SubscriptionPage';
-import MealPlanner from '../pages/MealPlanner';
+import SubscriptionPage from '../pages/SubscriptionPage';
+import SubscriptionSuccess from '../pages/SubscriptionSuccess';
+import RecipeForm from '../components/RecipeForm';
 
 // Route wrapper for authenticated routes
 const PrivateRoute = ({ children }) => {
@@ -54,6 +55,10 @@ export default function AppRoutes() {
         path="/subscription"
         element={<SubscriptionPage />}
         />
+      <Route 
+        path="/my-recipes/:id"
+        element={<RecipeDetail />} 
+        />  
 
       {/* Protected routes */}
       <Route
@@ -97,12 +102,14 @@ export default function AppRoutes() {
         }
       />
       <Route
-        path="/meal-planner"
+        path="/subscription-success"
         element={
-          <PrivateRoute>
-            <MealPlanner />
-          </PrivateRoute>
+          <SubscriptionSuccess />
         }
+      />
+      <Route
+        path="/my-recipes/edit/:id"
+        element={<RecipeForm />}
       />
 
       {/* Admin routes */}

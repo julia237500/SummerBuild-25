@@ -38,5 +38,22 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedRecipe = req.body;
+    const { data, error } = await supabase
+      .from('recipes')
+      .update(updatedRecipe)
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+    res.json(data[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
 
