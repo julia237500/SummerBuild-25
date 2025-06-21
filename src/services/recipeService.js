@@ -317,42 +317,46 @@ export const recipeService = {
   },
 
   // Toggle recipe favorite status
-  async toggleFavorite(recipeId) {
+  async toggleFavorite(userId, recipeId) {
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!user) throw new Error('User not authenticated');
+      const recipeIdStr = recipeId.toString();
 
-      // Check if recipe is already favorited
-      const { data: existing } = await supabase
+      // Check if it's already in favorites
+      const { data: existing, error: selectError } = await supabase
         .from('favorite_recipes')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('recipe_id', recipeId)
-        .single();
+        .eq('user_id', userId)
+        .eq('recipe_id', recipeIdStr);
 
-      if (existing) {
-        // Remove from favorites
-        const { error } = await supabase
+      if (selectError) throw selectError;
+
+      if (existing.length > 0) {
+        // Already favorited — remove it
+        const { error: deleteError } = await supabase
           .from('favorite_recipes')
           .delete()
-          .eq('user_id', user.id)
-          .eq('recipe_id', recipeId);
+          .eq('user_id', userId)
+          .eq('recipe_id', recipeIdStr);
 
-        if (error) throw error;
-        return false; // Indicates recipe was unfavorited
+        if (deleteError) throw deleteError;
+        return false;
       } else {
-        // Add to favorites
-        const { error } = await supabase
+        // Not yet favorited — add it
+        const { error: insertError } = await supabase
           .from('favorite_recipes')
-          .insert([{ user_id: user.id, recipe_id: recipeId }]);
+          .insert([
+            {
+              user_id: userId,
+              recipe_id: recipeIdStr,
+            },
+          ]);
 
-        if (error) throw error;
-        return true; // Indicates recipe was favorited
+        if (insertError) throw insertError;
+        return true
       }
-    } catch (error) {
-      console.error('Error toggling favorite status:', error);
-      throw error;
+    } catch (err) {
+      console.error('Error toggling favorite status:', err);
+      throw err;
     }
   },
 

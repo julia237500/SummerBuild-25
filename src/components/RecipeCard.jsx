@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { FaClock, FaUtensils, FaHeart, FaStar, FaLock } from 'react-icons/fa';
 import { GiCookingPot } from 'react-icons/gi';
 import { recipeService } from '../services/recipeService';
@@ -9,6 +10,7 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isFavorite, setIsFavorite] = useState(recipe.is_favorite);
+  const { user, loading} = useAuth();;
 
   const {
     id,
@@ -39,11 +41,25 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
     e.preventDefault();
     e.stopPropagation();
     
+    if (loading) {
+      setError('Authentication is still loading, please wait.');
+      return;
+    }
+
+    if (!user || !user.id) {
+      setError('You must be logged in to favorite recipes.');
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
-      const newFavoriteStatus = await recipeService.toggleFavorite(id);
+
+      console.log('Current user:', user);
+
+      const newFavoriteStatus = await recipeService.toggleFavorite(user.id, id);
       setIsFavorite(newFavoriteStatus);
+
       if (onFavoriteToggle) {
         onFavoriteToggle(id, newFavoriteStatus);
       }
@@ -154,11 +170,3 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
     </Link>
   );
 }
-
-
-const handleFavourite = async () => {
-  await axios.post('/api/favourites', { user_id, recipe_id: recipe.id });
-  // Optionally update UI
-};
-// ...in your render:
-<button onClick={handleFavourite}>Favourite</button>
