@@ -91,7 +91,6 @@ export default function Navbar() {
             </button>
             {profileDropdown && (
               <div className="dropdown-menu">
-                <Link to="/favorites" className="dropdown-item" onClick={closeDropdowns}>Favorites</Link>
                 <Link to="/profile" className="dropdown-item" onClick={closeDropdowns}>My Profile</Link>
               </div>
             )}

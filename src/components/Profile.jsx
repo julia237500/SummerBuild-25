@@ -20,7 +20,6 @@ export default function Profile() {
   const [isEditingPreferences, setIsEditingPreferences] = useState(false);
   const [originalPreferences, setOriginalPreferences] = useState(null);
   const [activity, setActivity] = useState([]);
-  const [notifications, setNotifications] = useState(null);
   const [connectedAccounts, setConnectedAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -69,13 +68,11 @@ export default function Profile() {
         userProfile,
         userPreferences,
         userActivity,
-        notificationSettings,
         userConnectedAccounts
       ] = await Promise.all([
         supabaseService.getCurrentUser(),
         supabaseService.getUserPreferences(),
         supabaseService.getUserActivity(),
-        supabaseService.getNotificationSettings(),
         supabaseService.getConnectedAccounts()
       ]);
 
@@ -85,7 +82,6 @@ export default function Profile() {
       setUser(userProfile);
       setPreferences(userPreferences);
       setActivity(userActivity);
-      setNotifications(notificationSettings);
       setConnectedAccounts(userConnectedAccounts);
 
       // Initialize form data with default values if data is not available
@@ -310,39 +306,6 @@ export default function Profile() {
     return isValid;
   };
 
-  const handleNotificationToggle = async (key) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Update the UI immediately for better UX
-      setNotifications(prev => ({
-        ...prev,
-        [key]: !prev[key]
-      }));
-
-      // Send the update to the server
-      await supabaseService.updateNotificationSettings({
-        ...notifications,
-        [key]: !notifications[key]
-      });
-
-      // Show success message
-      setSuccessMessage('Notification settings updated');
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err) {
-      // Revert the UI change if server update fails
-      setNotifications(prev => ({
-        ...prev,
-        [key]: !prev[key]
-      }));
-      setError('Failed to update notification settings. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const validatePassword = (password) => {
     const requirements = {
       length: password.length >= 8,
@@ -482,12 +445,6 @@ export default function Profile() {
             onClick={() => setActiveTab('activity')}
           >
             <FaHistory /> Activity
-          </button>
-          <button
-            className={`tab ${activeTab === 'notifications' ? 'active' : ''}`}
-            onClick={() => setActiveTab('notifications')}
-          >
-            <FaBell /> Notifications
           </button>
           <button
             className={`tab ${activeTab === 'security' ? 'active' : ''}`}
@@ -671,31 +628,6 @@ export default function Profile() {
                     <p>{item.description}</p>
                     <span>{new Date(item.created_at).toLocaleDateString()}</span>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'notifications' && notifications && (
-          <div className="notifications">
-            <h2>Notification Preferences</h2>
-            <div className="notification-settings">
-              {Object.entries(notifications).map(([key, value]) => (
-                <div key={key} className="notification-item">
-                  <div className="notification-info">
-                    <h3>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</h3>
-                    <p>Receive notifications about {key.toLowerCase()}</p>
-                  </div>
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={value}
-                      onChange={() => handleNotificationToggle(key)}
-                      disabled={loading}
-                    />
-                    <span className="slider round"></span>
-                  </label>
                 </div>
               ))}
             </div>

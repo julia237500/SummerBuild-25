@@ -11,19 +11,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const handleFavoriteToggle = (recipeId, isFavorite) => {
-    // Update both recipe lists
-    const updateRecipes = (recipes) =>
-      recipes.map(recipe =>
-        recipe.id === recipeId
-          ? { ...recipe, is_favorite: isFavorite }
-          : recipe
-      );
-    
-    setRandomRecipes(updateRecipes(randomRecipes));
-    setPopularRecipes(updateRecipes(popularRecipes));
-  };
-
   useEffect(() => {
     let mounted = true;
     
@@ -51,7 +38,6 @@ export default function Home() {
               protein: recipe.nutrition?.nutrients?.find(n => n.name === 'Protein')?.amount + 'g' || '13g',
               carbs: recipe.nutrition?.nutrients?.find(n => n.name === 'Carbohydrates')?.amount + 'g' || '22g',
               is_private: false,
-              is_favorite: false,
               average_rating: recipe.spoonacularScore ? (recipe.spoonacularScore / 20) : 4.5,
               total_ratings: recipe.aggregateLikes || 0,
               dietary_restrictions: recipe.diets || []
@@ -74,7 +60,6 @@ export default function Home() {
               protein: recipe.nutrition?.nutrients?.find(n => n.name === 'Protein')?.amount + 'g' || '13g',
               carbs: recipe.nutrition?.nutrients?.find(n => n.name === 'Carbohydrates')?.amount + 'g' || '22g',
               is_private: false,
-              is_favorite: false,
               average_rating: recipe.spoonacularScore ? (recipe.spoonacularScore / 20) : 4.5,
               total_ratings: recipe.aggregateLikes || 0,
               dietary_restrictions: recipe.diets || []
@@ -99,7 +84,6 @@ export default function Home() {
                 cuisine_type: 'Italian',
                 calories_per_serving: 562,
                 is_private: false,
-                is_favorite: false,
                 average_rating: 4.5,
                 total_ratings: 128,
                 dietary_restrictions: []
@@ -115,7 +99,6 @@ export default function Home() {
                 cuisine_type: 'American',
                 calories_per_serving: 320,
                 is_private: false,
-                is_favorite: false,
                 average_rating: 4.3,
                 total_ratings: 95,
                 dietary_restrictions: ['gluten-free']
@@ -212,7 +195,6 @@ export default function Home() {
                     key={recipe.id}
                     recipe={recipe}
                     showActions={true}
-                    onFavoriteToggle={handleFavoriteToggle}
                   />
                 ))}
               </div>
@@ -227,7 +209,6 @@ export default function Home() {
                     key={recipe.id}
                     recipe={recipe}
                     showActions={true}
-                    onFavoriteToggle={handleFavoriteToggle}
                   />
                 ))}
               </div>

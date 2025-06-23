@@ -8,7 +8,6 @@ import NewRecipe from '../pages/NewRecipe';
 import RecipeDetail from '../pages/RecipeDetail';
 import RecipeSearch from '../components/RecipeSearch';
 import IngredientSubstitutes from '../components/IngredientSubstitutes';
-import Favorites from '../components/Favorites';
 import Profile from '../components/Profile';
 import AdminLogin from '../pages/AdminLogin';
 import AdminDashboard from '../pages/AdminDashboard';
@@ -95,14 +94,6 @@ export default function AppRoutes() {
         element={
           <PrivateRoute>
             <NewRecipe />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/favorites"
-        element={
-          <PrivateRoute>
-            <Favorites />
           </PrivateRoute>
         }
       />

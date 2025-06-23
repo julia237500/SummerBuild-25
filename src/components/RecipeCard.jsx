@@ -90,17 +90,6 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
             <GiCookingPot className="placeholder-icon" />
           </div>
         )}
-        {showActions && (
-          <button
-            onClick={handleFavoriteClick}
-            disabled={isLoading}
-            className={`favorite-btn ${isFavorite ? 'active' : ''} ${isLoading ? 'loading' : ''}`}
-            title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            <FaHeart />
-          </button>
-        )}
         {error && (
           <div className="error-message" role="alert">
             {error}
