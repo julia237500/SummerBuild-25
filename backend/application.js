@@ -33,3 +33,6 @@ app.listen(5000, () => {
 
 const favouritesRoutes = require('./routes/favourites');
 app.use('/api/favourites', favouritesRoutes);
+
+const collectionsRoutes = require('./routes/collections');
+app.use('/api/collections', collectionsRoutes);

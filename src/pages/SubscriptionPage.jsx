@@ -37,7 +37,7 @@ function SubscriptionPage() {
   return (
     <div className="subscription-container">
       <div className="subscription-card">
-        <h2>Subscribe to Us!</h2>
+        <h2>Subscribe to Us for only $9.99 per month!</h2>
         <p className="subtitle">Unlock premium recipes and features!</p>
         <div ref={paypalRef}></div>
         {error && <div className="error-message">{error}</div>}
