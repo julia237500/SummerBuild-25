@@ -14,6 +14,10 @@ import AdminDashboard from '../pages/AdminDashboard';
 import SubscriptionPage from '../pages/SubscriptionPage';
 import SubscriptionSuccess from '../pages/SubscriptionSuccess';
 import RecipeForm from '../components/RecipeForm';
+import FeedbackPage from '../pages/FeedbackPage';
+import ContactPage from '../pages/ContactPage';
+import MealPlanner from '../pages/MealPlanner';
+
 
 // Route wrapper for authenticated routes
 const PrivateRoute = ({ children }) => {
@@ -110,6 +114,18 @@ export default function AppRoutes() {
       <Route
         path="/my-recipes/edit/:id"
         element={<RecipeForm />}
+      />
+      <Route 
+        path="/feedback" 
+        element={<FeedbackPage />} 
+      />
+      <Route 
+        path="/contact" 
+        element={<ContactPage />} 
+      />
+      <Route 
+        path="/meal-planner" 
+        element={<MealPlanner />} 
       />
 
       {/* Admin routes */}

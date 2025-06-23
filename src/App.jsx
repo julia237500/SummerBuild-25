@@ -4,7 +4,7 @@ import supabase from './services/supabaseClient';
 import Navbar from './components/Navbar';
 import AppRoutes from './routes/AppRoutes';
 import './App.css';
-
+import Chatbot from './components/Chatbot';
 
 
 function App() {
@@ -84,6 +84,7 @@ function App() {
         <main className="main-content">
           <AppRoutes />
         </main>
+        <Chatbot />
       </div>
     </Router>
   );
