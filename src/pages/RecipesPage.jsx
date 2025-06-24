@@ -188,11 +188,6 @@ export default function RecipesPage() {
           </div>
         </div>
 
-        {/* Most viewed recipes */}
-        <SectionCard title="Top 10 Most Viewed Recipes">
-          <RecipeCardList data={mostViewed} type="views" />
-        </SectionCard>
-
         {/* Top 10 most used ingredients */}
         <SectionCard title="Top 10 Most Used Ingredients">
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'flex-start' }}>
