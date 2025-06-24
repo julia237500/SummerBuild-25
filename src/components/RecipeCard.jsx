@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { FaClock, FaUtensils, FaHeart, FaStar, FaLock } from 'react-icons/fa';
 import { GiCookingPot } from 'react-icons/gi';
 import { recipeService } from '../services/recipeService';
+import { formatDifficulty, formatCuisineType, getDifficultyColor, formatCookingTime, formatCalories } from '../utils/formatters';
 import './RecipeCard.css';
 
 export default function RecipeCard({ recipe, onFavoriteToggle, showActions = true }) {
@@ -33,9 +34,7 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
     carbs
   } = recipe;
 
-  const totalTime = prep_time_minutes && cook_time_minutes 
-    ? prep_time_minutes + cook_time_minutes 
-    : cooking_time;
+  const totalTime = formatCookingTime(prep_time_minutes, cook_time_minutes) || cooking_time;
 
   const handleFavoriteClick = async (e) => {
     e.preventDefault();
@@ -69,15 +68,6 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getDifficultyColor = (level) => {
-    const colors = {
-      easy: 'bg-green-500',
-      medium: 'bg-yellow-500',
-      hard: 'bg-red-500'
-    };
-    return colors[level?.toLowerCase()] || 'bg-gray-500';
   };
 
   return (
@@ -116,13 +106,13 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
           {cuisine_type && (
             <div className="recipe-stat">
               <FaUtensils className="icon" />
-              <span>{cuisine_type.replace('_', ' ')}</span>
+              <span>{formatCuisineType(cuisine_type)}</span>
             </div>
           )}
           {(calories_per_serving || calories) && (
             <div className="recipe-stat">
               <GiCookingPot className="icon" />
-              <span>{calories_per_serving || calories} cal</span>
+              <span>{formatCalories(calories_per_serving || calories)}</span>
             </div>
           )}
         </div>
@@ -131,7 +121,7 @@ export default function RecipeCard({ recipe, onFavoriteToggle, showActions = tru
           <div className="recipe-badges">
             {difficulty && (
               <span className={`difficulty-badge ${getDifficultyColor(difficulty)}`}>
-                {difficulty}
+                {formatDifficulty(difficulty)}
               </span>
             )}
             {dietary_restrictions?.map((restriction) => (

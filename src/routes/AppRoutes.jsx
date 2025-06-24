@@ -14,6 +14,8 @@ import AdminDashboard from '../pages/AdminDashboard';
 import SubscriptionPage from '../SubscriptionPage';
 import MealPlanner from '../pages/MealPlanner';
 import ContactPage from '../pages/ContactPage';
+import MockDataManager from '../components/MockDataManager';
+import Community from '../components/Community';
 
 // Route wrapper for authenticated routes
 const PrivateRoute = ({ children }) => {
@@ -105,7 +107,16 @@ export default function AppRoutes() {
           </PrivateRoute>
         }
       />
+      <Route
+        path="/mock-data"
+        element={
+          <PrivateRoute>
+            <MockDataManager />
+          </PrivateRoute>
+        }
+      />
       <Route path="/contact" element={<ContactPage />} />
+      <Route path="/community" element={<Community />} />
       {/* Admin routes */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />

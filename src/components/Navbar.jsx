@@ -121,7 +121,7 @@ export default function Navbar() {
             SUBSCRIPTION
             <span className="premium-badge">PRO</span>
           </Link>
-          <Link to="/blog" className="nav-link" onClick={closeDropdowns}>BLOG</Link>
+          <Link to="/community" className="nav-link" onClick={closeDropdowns}>COMMUNITY</Link>
           <Link to="/contact" className="nav-link" onClick={closeDropdowns}>CONTACT</Link>
         </div>
 

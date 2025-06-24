@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { FaComments, FaTimes, FaPaperPlane, FaRobot } from 'react-icons/fa';
+import { recipeService } from '../services/recipeService';
+import { spoonacularApi } from '../services/spoonacularApi';
 import './Chatbot.css';
 
 export default function Chatbot() {
@@ -7,6 +9,7 @@ export default function Chatbot() {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [userRecipes, setUserRecipes] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -26,17 +29,33 @@ export default function Chatbot() {
     }
   }, [isOpen]);
 
+  // Load user recipes when chat opens
+  useEffect(() => {
+    if (isOpen) {
+      loadUserRecipes();
+    }
+  }, [isOpen]);
+
   // Initialize with welcome message
   useEffect(() => {
     setMessages([
       {
         id: 1,
-        text: "Hi there! 👋 I'm your RecipeHub assistant. I can help you find recipes, cooking tips, and answer questions about ingredients. What would you like to know?",
+        text: "Hi there! I'm your RecipeHub AI assistant. I can help you with:\n\nRecipe Management: Create, edit, delete, and organize your recipes\nRecipe Search: Find recipes by ingredients, cuisine, or dietary needs\nRecipe Creation: Help you write and format new recipes\nCooking Tips: Get advice on techniques, substitutes, and meal planning\n\nWhat would you like to do today?",
         sender: 'bot',
         timestamp: new Date()
       }
     ]);
   }, []);
+
+  const loadUserRecipes = async () => {
+    try {
+      const recipes = await recipeService.getUserRecipes();
+      setUserRecipes(recipes);
+    } catch (error) {
+      console.error('Error loading user recipes:', error);
+    }
+  };
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
@@ -57,204 +76,228 @@ export default function Chatbot() {
     setInputMessage('');
     setIsTyping(true);
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botResponse = generateBotResponse(inputMessage);
+    try {
+      const botResponse = await generateSmartResponse(inputMessage);
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
         text: botResponse,
         sender: 'bot',
         timestamp: new Date()
       }]);
+    } catch (error) {
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        text: "Sorry, I encountered an error. Please try again or rephrase your question.",
+        sender: 'bot',
+        timestamp: new Date()
+      }]);
+    } finally {
       setIsTyping(false);
-    }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+    }
   };
 
-  const generateBotResponse = (userMessage) => {
+  const generateSmartResponse = async (userMessage) => {
     const message = userMessage.toLowerCase();
     
-    // Recipe search and discovery
-    if (message.includes('recipe') || message.includes('cook') || message.includes('food') || message.includes('dish')) {
-      // Specific recipe types
-      if (message.includes('breakfast') || message.includes('morning')) {
-        return "🍳 For breakfast recipes, try searching for 'eggs', 'pancakes', 'oatmeal', or 'smoothie' in our recipe search. We have quick morning meals that take 15 minutes or less! Go to Recipe → Search Recipes in the navigation.";
-      }
-      
-      if (message.includes('lunch') || message.includes('midday')) {
-        return "🥪 Looking for lunch ideas? Search for 'sandwich', 'salad', 'soup', or 'pasta' in our recipe search. We have healthy, quick lunch options that are perfect for busy days!";
-      }
-      
-      if (message.includes('dinner') || message.includes('evening') || message.includes('night')) {
-        return "🍽️ Dinner time! Search for 'chicken', 'beef', 'fish', 'vegetarian', or 'pasta' in our recipe search. We have everything from quick 30-minute meals to impressive dinner party dishes!";
-      }
-      
-      if (message.includes('dessert') || message.includes('sweet') || message.includes('cake') || message.includes('cookie')) {
-        return "🍰 Sweet tooth? Search for 'chocolate', 'cake', 'cookie', 'ice cream', or 'pie' in our recipe search. We have decadent desserts and healthier sweet treats too!";
-      }
-      
-      if (message.includes('quick') || message.includes('fast') || message.includes('easy') || message.includes('simple')) {
-        return "⚡ Need something quick? Search for 'quick', 'easy', or '30 minute' recipes in our search. We have tons of recipes that take 30 minutes or less to prepare!";
-      }
-      
-      if (message.includes('healthy') || message.includes('low calorie') || message.includes('diet')) {
-        return "🥗 For healthy recipes, search for 'healthy', 'low calorie', 'vegetarian', or 'salad' in our recipe search. We also have filters for dietary preferences like gluten-free and vegan!";
-      }
-      
-      if (message.includes('italian') || message.includes('pasta') || message.includes('pizza')) {
-        return "🇮🇹 Italian food lover? Search for 'pasta', 'pizza', 'risotto', or 'italian' in our recipe search. We have authentic Italian dishes and modern twists on classics!";
-      }
-      
-      if (message.includes('asian') || message.includes('chinese') || message.includes('japanese') || message.includes('thai') || message.includes('indian')) {
-        return "🍜 Craving Asian cuisine? Search for 'asian', 'chinese', 'japanese', 'thai', 'indian', or 'curry' in our recipe search. We have authentic recipes from across Asia!";
-      }
-      
-      if (message.includes('mexican') || message.includes('taco') || message.includes('burrito')) {
-        return "🌮 Mexican food fan? Search for 'mexican', 'taco', 'burrito', 'enchilada', or 'guacamole' in our recipe search. We have spicy, flavorful Mexican dishes!";
-      }
-      
-      if (message.includes('vegetarian') || message.includes('vegan')) {
-        return "🥬 Plant-based eating? Search for 'vegetarian', 'vegan', or 'plant-based' in our recipe search. We have delicious meat-free options that are full of flavor!";
-      }
-      
-      if (message.includes('gluten') || message.includes('celiac')) {
-        return "🌾 Gluten-free needs? Search for 'gluten-free' in our recipe search. We have plenty of delicious gluten-free options for every meal!";
-      }
-      
-      if (message.includes('popular') || message.includes('trending') || message.includes('best')) {
-        return "🔥 Want to see what's popular? Our recipe search defaults to showing the most popular recipes first! You can also sort by 'popularity' to see trending dishes.";
-      }
-      
-      if (message.includes('new') || message.includes('recent') || message.includes('latest')) {
-        return "🆕 Looking for new recipes? Our database is constantly updated with fresh, exciting recipes. Try searching for seasonal ingredients or trending cuisines!";
-      }
-      
-      if (message.includes('seasonal') || message.includes('spring') || message.includes('summer') || message.includes('fall') || message.includes('winter')) {
-        return "🍂 Seasonal cooking is wonderful! Search for seasonal ingredients like 'pumpkin' (fall), 'berries' (summer), 'asparagus' (spring), or 'root vegetables' (winter) in our recipe search.";
-      }
-      
-      if (message.includes('budget') || message.includes('cheap') || message.includes('affordable') || message.includes('inexpensive')) {
-        return "💰 Cooking on a budget? Search for 'budget-friendly', 'cheap', or specific affordable ingredients like 'beans', 'rice', 'pasta', or 'eggs' in our recipe search.";
-      }
-      
-      if (message.includes('party') || message.includes('entertaining') || message.includes('guests')) {
-        return "🎉 Hosting a party? Search for 'appetizer', 'finger food', 'party', or 'crowd-pleaser' in our recipe search. We have perfect dishes for entertaining!";
-      }
-      
-      if (message.includes('kid') || message.includes('children') || message.includes('family')) {
-        return "👶 Cooking for kids? Search for 'kid-friendly', 'family', or 'simple' in our recipe search. We have recipes that kids love and can help prepare!";
-      }
-      
-      // General recipe guidance
-      const responses = [
-        "🍳 I can help you find the perfect recipe! Try searching for specific ingredients, cuisines, or meal types in our recipe search. For example: 'chicken pasta', 'vegetarian dinner', 'quick breakfast', or 'italian food'. Go to Recipe → Search Recipes in the navigation!",
-        "👨‍🍳 Great! We have thousands of recipes in our database. You can search by ingredients you have, cuisine type, dietary preferences, or cooking time. What type of food are you in the mood for today?",
-        "🥘 Cooking is such a wonderful activity! Our recipe search lets you find dishes by ingredients, cuisine, dietary needs, or cooking time. Try searching for something specific like 'quick vegetarian dinner' or 'italian pasta'!"
-      ];
-      return responses[Math.floor(Math.random() * responses.length)];
+    // Recipe CRUD Operations
+    if (message.includes('create') || message.includes('add') || message.includes('new recipe') || message.includes('write recipe')) {
+      return "I can help you create a new recipe! Here's what I need:\n\nRecipe Name: What's the name of your dish?\nDescription: Brief description of the recipe\nIngredients: List of ingredients with amounts\nInstructions: Step-by-step cooking instructions\nPrep Time: How long to prepare (in minutes)\nCook Time: How long to cook (in minutes)\nServings: How many people it serves\nDifficulty: Easy, Medium, or Hard\nCuisine Type: Italian, Mexican, Asian, etc.\n\nYou can also tell me: 'I want to create a recipe for [dish name]' and I'll guide you through the process!";
     }
-    
-    // Ingredient-related responses
-    if (message.includes('ingredient') || message.includes('substitute') || message.includes('replace') || message.includes('don\'t have')) {
-      if (message.includes('butter') || message.includes('oil')) {
-        return "🧈 Need a butter substitute? Try olive oil, coconut oil, applesauce (for baking), or avocado. Check out our Ingredient Substitutes tool under Recipe → Ingredient Substitutes for detailed alternatives!";
+
+    if (message.includes('edit') || message.includes('update') || message.includes('modify') || message.includes('change')) {
+      if (userRecipes.length === 0) {
+        return "You don't have any recipes yet. Create your first recipe and then I can help you edit it!";
       }
       
-      if (message.includes('egg') || message.includes('eggs')) {
-        return "🥚 No eggs? Try flax seeds, chia seeds, banana, or applesauce as substitutes. The ratio varies by recipe type. Use our Ingredient Substitutes tool for specific measurements!";
-      }
-      
-      if (message.includes('milk') || message.includes('dairy')) {
-        return "🥛 Dairy-free options include almond milk, oat milk, coconut milk, or soy milk. Each works differently in recipes. Check our Ingredient Substitutes tool for the best alternatives!";
-      }
-      
-      if (message.includes('flour') || message.includes('gluten')) {
-        return "🌾 Gluten-free flour alternatives include almond flour, coconut flour, rice flour, or gluten-free all-purpose flour. Use our Ingredient Substitutes tool for proper ratios!";
-      }
-      
-      return "🔄 Need ingredient substitutes? We have a great tool for that! Go to Recipe → Ingredient Substitutes in the navigation menu. Just enter the ingredient you need to replace and we'll suggest alternatives with proper ratios.";
+      const recipeNames = userRecipes.map(r => r.name).join(', ');
+      return `I can help you edit your recipes! You have ${userRecipes.length} recipe(s):\n\n${recipeNames}\n\nTell me which recipe you want to edit and what changes you'd like to make. For example: 'Edit my pasta recipe to add more garlic' or 'Update the cooking time for my chicken dish'`;
     }
-    
-    // Dietary restrictions
-    if (message.includes('vegetarian') || message.includes('vegan') || message.includes('gluten') || message.includes('diet') || message.includes('allergy')) {
-      if (message.includes('vegetarian')) {
-        return "🥬 Vegetarian options abound! Search for 'vegetarian' in our recipe search. We have meat-free dishes that are protein-rich using beans, lentils, eggs, and dairy. Try 'vegetarian pasta', 'bean recipes', or 'vegetarian dinner'!";
+
+    if (message.includes('delete') || message.includes('remove') || message.includes('trash')) {
+      if (userRecipes.length === 0) {
+        return "You don't have any recipes to delete yet.";
       }
       
-      if (message.includes('vegan')) {
-        return "🌱 Vegan cooking is exciting! Search for 'vegan' in our recipe search. We have plant-based versions of classic dishes using tofu, tempeh, nuts, and vegetables. Try 'vegan curry', 'plant-based protein', or 'vegan dessert'!";
-      }
-      
-      if (message.includes('gluten') || message.includes('celiac')) {
-        return "🌾 Gluten-free cooking is easier than ever! Search for 'gluten-free' in our recipe search. We have naturally gluten-free dishes and adapted versions of favorites. Try 'gluten-free pasta', 'quinoa recipes', or 'gluten-free baking'!";
-      }
-      
-      if (message.includes('dairy') || message.includes('lactose')) {
-        return "🥛 Dairy-free options are plentiful! Search for 'dairy-free' or 'vegan' in our recipe search. We have delicious alternatives using plant-based milks, nut cheeses, and coconut products!";
-      }
-      
-      return "🥗 We support various dietary preferences! You can filter recipes by vegetarian, vegan, gluten-free, dairy-free, and other dietary restrictions. Use our advanced search filters to find exactly what you need.";
+      const recipeNames = userRecipes.map(r => r.name).join(', ');
+      return `I can help you delete recipes. You have ${userRecipes.length} recipe(s):\n\n${recipeNames}\n\nTell me which recipe you want to delete. For example: 'Delete my pasta recipe' or 'Remove the chicken dish'`;
     }
-    
-    // Meal planning
-    if (message.includes('meal') || message.includes('plan') || message.includes('weekly') || message.includes('menu')) {
-      if (message.includes('plan') || message.includes('weekly')) {
-        return "📅 Meal planning is a game-changer! Check out our Meal Planner feature under the Planner dropdown. You can plan your weekly meals, create shopping lists, and save time and money. It's perfect for busy families!";
+
+    if (message.includes('my recipes') || message.includes('show my recipes') || message.includes('list my recipes')) {
+      if (userRecipes.length === 0) {
+        return "You don't have any recipes yet. Create your first recipe by saying 'I want to create a recipe'!";
       }
       
-      if (message.includes('shopping') || message.includes('grocery')) {
-        return "🛒 Our Meal Planner automatically generates shopping lists based on your planned meals! Go to Planner → Meal Planner to create your weekly plan and get an organized grocery list.";
-      }
+      const recipeList = userRecipes.map((recipe, index) => 
+        `${index + 1}. ${recipe.name} - ${recipe.cuisine_type || 'Various'} cuisine, ${recipe.difficulty || 'Medium'} difficulty`
+      ).join('\n');
       
-      if (message.includes('budget') || message.includes('save money')) {
-        return "💰 Meal planning helps you save money! Our Meal Planner lets you plan affordable meals and create efficient shopping lists. You'll reduce food waste and stick to your budget!";
-      }
-      
-      return "🍽️ Meal planning is a great way to stay organized! Check out our Meal Planner feature under the Planner dropdown. You can plan your weekly meals and create shopping lists.";
+      return `Here are your ${userRecipes.length} recipe(s):\n\n${recipeList}\n\nYou can ask me to edit, delete, or get details about any of these recipes!`;
     }
-    
-    // Cooking techniques and tips
-    if (message.includes('how to') || message.includes('cooking tip') || message.includes('technique')) {
-      if (message.includes('knife') || message.includes('cut') || message.includes('chop')) {
-        return "🔪 Knife skills are essential! Always use a sharp knife and keep your fingers curled under. For chopping, use a rocking motion. For slicing, use a forward motion. Practice makes perfect!";
+
+    // Enhanced Recipe Search and Discovery - Includes both database and API recipes
+    if (message.includes('find') || message.includes('search') || message.includes('look for') || message.includes('recipe for')) {
+      const searchTerms = extractSearchTerms(message);
+      if (searchTerms.length > 0) {
+        let response = "";
+        let hasResults = false;
+
+        // Search in user's database recipes first
+        const dbResults = searchUserRecipes(searchTerms);
+        if (dbResults.length > 0) {
+          response += `📚 **Your Recipes** (${dbResults.length} found):\n`;
+          const dbRecipeList = dbResults.map((recipe, index) => 
+            `${index + 1}. ${recipe.name} - ${recipe.cuisine_type || 'Various'} cuisine, ${recipe.difficulty || 'Medium'} difficulty`
+          ).join('\n');
+          response += `${dbRecipeList}\n\n`;
+          hasResults = true;
+        }
+
+        // Search in Spoonacular API
+        try {
+          const apiResults = await spoonacularApi.searchRecipes(searchTerms.join(' '), '', 5);
+          if (apiResults.results && apiResults.results.length > 0) {
+            response += `🌐 **Online Recipes** (${apiResults.results.length} found):\n`;
+            const apiRecipeList = apiResults.results.map((recipe, index) => 
+              `${index + 1}. ${recipe.title} - ${recipe.readyInMinutes} min, ${recipe.cuisines?.[0] || 'Various'}`
+            ).join('\n');
+            response += `${apiRecipeList}\n\n`;
+            hasResults = true;
+          }
+        } catch (error) {
+          console.error('API search error:', error);
+        }
+
+        if (hasResults) {
+          response += "You can ask me for more details about any of these recipes!";
+          return response;
+        } else {
+          return `I couldn't find any recipes for "${searchTerms.join(' ')}" in your database or online. Try different keywords or be more specific!`;
+        }
       }
       
-      if (message.includes('season') || message.includes('salt') || message.includes('spice')) {
-        return "🧂 Seasoning is key! Salt enhances flavors, so season in layers. Taste as you cook and adjust. Don't forget acid (lemon, vinegar) and herbs for brightness!";
-      }
-      
-      if (message.includes('temperature') || message.includes('heat') || message.includes('cook')) {
-        return "🌡️ Temperature control is crucial! High heat for searing, medium for sautéing, low for simmering. Use a thermometer for meats. Remember: you can always add heat, but you can't take it away!";
-      }
-      
-      if (message.includes('time') || message.includes('duration') || message.includes('how long')) {
-        return "⏰ Cooking times vary! Check our recipe details for specific timing. Remember: prep time + cook time = total time. Always read the full recipe before starting!";
-      }
-      
-      return "👨‍🍳 Great cooking question! I can help with techniques, timing, and tips. Could you be more specific about what you'd like to learn? For example: knife skills, seasoning, temperature control, or timing?";
+      return "I can help you find recipes! I'll search both your personal recipe database and online recipes.\n\nSearch by:\n• **Ingredients**: 'Find recipes with chicken and pasta'\n• **Cuisine**: 'Search for Italian recipes'\n• **Meal type**: 'Find quick dinner recipes'\n• **Dietary needs**: 'Search for vegetarian recipes'\n\nWhat would you like to find?";
     }
-    
-    // General cooking questions
-    if (message.includes('how') || message.includes('what') || message.includes('why') || message.includes('when')) {
-      const responses = [
-        "🤔 That's a great question! I'm here to help with cooking tips and recipe guidance. Could you be more specific about what you'd like to know? For example: recipe recommendations, cooking techniques, or ingredient help?",
-        "💡 I'd love to help you with that! Our website has lots of resources for cooking enthusiasts. What specific aspect would you like to learn more about?",
-        "🎯 Great question! I can help you navigate our features and find the information you need. What would you like to know more about?"
-      ];
-      return responses[Math.floor(Math.random() * responses.length)];
+
+    // Search specifically in user's database
+    if (message.includes('my database') || message.includes('in my recipes') || message.includes('from my collection')) {
+      const searchTerms = extractSearchTerms(message);
+      if (searchTerms.length > 0) {
+        const dbResults = searchUserRecipes(searchTerms);
+        if (dbResults.length > 0) {
+          const recipeList = dbResults.map((recipe, index) => 
+            `${index + 1}. ${recipe.name} - ${recipe.cuisine_type || 'Various'} cuisine, ${recipe.difficulty || 'Medium'} difficulty`
+          ).join('\n');
+          
+          return `📚 Found ${dbResults.length} recipe(s) in your database for "${searchTerms.join(' ')}":\n\n${recipeList}\n\nYou can ask me to edit, delete, or get details about any of these recipes!`;
+        } else {
+          return `I couldn't find any recipes in your database for "${searchTerms.join(' ')}". Try different keywords or create a new recipe!`;
+        }
+      }
+      
+      return "I can search specifically in your recipe database! Tell me what you're looking for:\n\n• 'Find pasta recipes in my database'\n• 'Search for chicken dishes in my recipes'\n• 'Look for vegetarian recipes in my collection'\n\nWhat would you like to find in your recipes?";
     }
-    
-    // Greetings
+
+    // Ingredient Substitutes
+    if (message.includes('substitute') || message.includes('replace') || message.includes('don\'t have') || message.includes('alternative')) {
+      const ingredient = extractIngredient(message);
+      if (ingredient) {
+        try {
+          const substitutes = await spoonacularApi.getIngredientSubstitutes(ingredient);
+          if (substitutes.status === 'success' && substitutes.substitutes) {
+            const substituteList = substitutes.substitutes.map((sub, index) => 
+              `${index + 1}. ${sub}`
+            ).join('\n');
+            
+            return `Here are substitutes for ${ingredient}:\n\n${substituteList}`;
+          } else {
+            return `I couldn't find specific substitutes for ${ingredient}, but you can try common alternatives or check our Ingredient Substitutes tool!`;
+          }
+        } catch (error) {
+          return `For ${ingredient} substitutes, try our Ingredient Substitutes tool under Recipe -> Ingredient Substitutes in the navigation!`;
+        }
+      }
+      
+      return "I can help you find ingredient substitutes! Tell me what ingredient you need to replace. For example:\n\n'What can I substitute for butter?'\n'I don't have eggs, what can I use?'\n'Need a substitute for milk'\n\nWhat ingredient do you need help with?";
+    }
+
+    // Cooking Tips and Techniques
+    if (message.includes('how to') || message.includes('cooking tip') || message.includes('technique') || message.includes('advice')) {
+      return "I can help with cooking tips and techniques! Here are some areas I can assist with:\n\nKnife Skills: Chopping, slicing, dicing techniques\nSeasoning: How to properly season your food\nTemperature Control: Cooking temperatures and heat management\nTiming: How long to cook different foods\nMeal Planning: Planning weekly meals and shopping lists\nIngredient Prep: How to prepare and store ingredients\n\nWhat specific cooking technique would you like to learn about?";
+    }
+
+    // Meal Planning
+    if (message.includes('meal plan') || message.includes('weekly menu') || message.includes('plan meals')) {
+      return "I can help you with meal planning! Here's what I can assist with:\n\nWeekly Planning: Plan your meals for the week\nShopping Lists: Generate grocery lists from your meal plan\nBudget Planning: Plan meals within your budget\nDietary Planning: Plan meals for specific diets\nTime-Saving: Quick meal prep strategies\n\nYou can also use our Meal Planner feature under Planner -> Meal Planner for a full planning experience!\n\nWhat aspect of meal planning would you like help with?";
+    }
+
+    // Dietary Restrictions
+    if (message.includes('vegetarian') || message.includes('vegan') || message.includes('gluten') || message.includes('dairy') || message.includes('allergy')) {
+      return "I can help with dietary restrictions! Here are some options:\n\nVegetarian: Meat-free recipes with eggs and dairy\nVegan: Plant-based recipes without animal products\nGluten-Free: Recipes without gluten-containing ingredients\nDairy-Free: Recipes without milk, cheese, or butter\nLow-Carb: Reduced carbohydrate options\nKeto: High-fat, low-carb recipes\n\nYou can search for these in our recipe database or ask me for specific recommendations!\n\nWhat dietary preference are you looking for?";
+    }
+
+    // Greetings and General Help
     if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
-      return "Hello! 👋 How can I help you today? I can assist with finding recipes, cooking tips, ingredient substitutes, meal planning, and more! Just ask me anything about cooking!";
+      return "Hello! How can I help you today? I can assist with:\n\nRecipe Management: Create, edit, delete your recipes\nRecipe Search: Find recipes by ingredients or cuisine (searches both your database and online)\nRecipe Creation: Help you write new recipes\nCooking Tips: Get advice on techniques and substitutes\nMeal Planning: Plan your weekly meals\n\nWhat would you like to do?";
+    }
+
+    if (message.includes('help') || message.includes('what can you do')) {
+      return "Here's what I can help you with:\n\nRecipe Management\n- Create new recipes\n- Edit existing recipes\n- Delete recipes\n- List your recipes\n\nRecipe Discovery\n- Search your personal recipe database\n- Search online recipes from Spoonacular\n- Find recipes by ingredients, cuisine, or dietary needs\n- Get recipe recommendations\n\nCooking Assistance\n- Find ingredient substitutes\n- Get cooking tips and techniques\n- Meal planning advice\n- Dietary restriction guidance\n\nExamples:\n- 'Create a recipe for chicken pasta'\n- 'Find vegetarian dinner recipes'\n- 'Search for pasta in my database'\n- 'What can I substitute for butter?'\n- 'Show my recipes'\n\nWhat would you like to try?";
+    }
+
+    // Default response
+    return "I'm here to help with all things cooking! Try asking me to:\n\nCreate a recipe: 'I want to create a recipe for pasta'\nFind recipes: 'Find vegetarian dinner recipes' (searches both your database and online)\nSearch your database: 'Find chicken recipes in my database'\nManage recipes: 'Show my recipes' or 'Edit my chicken recipe'\nGet cooking help: 'What can I substitute for eggs?'\nMeal planning: 'Help me plan meals for the week'\n\nWhat would you like to do?";
+  };
+
+  // Helper function to search in user's recipe database
+  const searchUserRecipes = (searchTerms) => {
+    if (!userRecipes || userRecipes.length === 0) return [];
+    
+    const searchString = searchTerms.join(' ').toLowerCase();
+    
+    return userRecipes.filter(recipe => {
+      const recipeText = [
+        recipe.name,
+        recipe.description,
+        recipe.cuisine_type,
+        recipe.difficulty,
+        recipe.ingredients ? JSON.stringify(recipe.ingredients) : '',
+        recipe.instructions
+      ].join(' ').toLowerCase();
+      
+      return searchTerms.some(term => recipeText.includes(term));
+    });
+  };
+
+  const extractSearchTerms = (message) => {
+    const searchKeywords = ['find', 'search', 'look for', 'recipe for', 'recipes with', 'show me'];
+    let terms = [];
+    
+    for (const keyword of searchKeywords) {
+      if (message.includes(keyword)) {
+        const afterKeyword = message.split(keyword)[1];
+        if (afterKeyword) {
+          terms = afterKeyword.trim().split(/\s+/);
+          break;
+        }
+      }
     }
     
-    // Default response
-    const defaultResponses = [
-      "I'm here to help you with all things cooking! Try asking about specific recipes (like 'quick dinner ideas' or 'vegetarian pasta'), cooking techniques, ingredient substitutes, or meal planning.",
-      "That's interesting! I can help you find recipes, suggest ingredient substitutes, answer cooking questions, or guide you to meal planning. What would you like to explore?",
-      "I'm your cooking assistant! I can help you discover new recipes, find ingredient alternatives, get cooking tips, and plan meals. What can I help you with today?"
-    ];
-    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+    return terms.filter(term => term.length > 2);
+  };
+
+  const extractIngredient = (message) => {
+    const substituteKeywords = ['substitute for', 'replace', 'don\'t have', 'alternative for'];
+    
+    for (const keyword of substituteKeywords) {
+      if (message.includes(keyword)) {
+        const afterKeyword = message.split(keyword)[1];
+        if (afterKeyword) {
+          return afterKeyword.trim().split(/\s+/)[0];
+        }
+      }
+    }
+    
+    return null;
   };
 
   const formatTime = (timestamp) => {
@@ -270,7 +313,7 @@ export default function Chatbot() {
         aria-label="Open chat"
       >
         <FaComments className="chat-icon" />
-        <span className="chat-label">Need help?</span>
+        <span className="chat-label">Recipe AI Assistant</span>
       </button>
 
       {/* Chat Window */}
@@ -280,7 +323,7 @@ export default function Chatbot() {
           <div className="chatbot-header">
             <div className="chatbot-title">
               <FaRobot className="bot-icon" />
-              <span>RecipeHub Assistant</span>
+              <span>Bot Assistance</span>
             </div>
             <button 
               className="close-button"
@@ -299,7 +342,7 @@ export default function Chatbot() {
                 className={`message ${message.sender === 'user' ? 'user-message' : 'bot-message'}`}
               >
                 <div className="message-content">
-                  <p>{message.text}</p>
+                  <p style={{ whiteSpace: 'pre-line' }}>{message.text}</p>
                   <span className="message-time">{formatTime(message.timestamp)}</span>
                 </div>
               </div>
@@ -327,7 +370,7 @@ export default function Chatbot() {
               type="text"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Type your message..."
+              placeholder="Ask me about recipes, cooking tips, or meal planning..."
               className="message-input"
               disabled={isTyping}
             />
@@ -343,4 +386,4 @@ export default function Chatbot() {
       )}
     </div>
   );
-} 
+}

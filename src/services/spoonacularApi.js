@@ -154,18 +154,126 @@ export const spoonacularApi = {
   // Get ingredient substitutes
   getIngredientSubstitutes: async (ingredientName) => {
     try {
+      console.log('SpoonacularAPI: Getting substitutes for:', ingredientName);
       const params = new URLSearchParams({
         ingredientName: ingredientName
       });
 
-      const response = await fetch(
-        `${BASE_URL}/food/ingredients/substitutes?${params}`,
-        { headers }
-      );
-      return handleResponse(response);
+      const url = `${BASE_URL}/food/ingredients/substitutes?${params}`;
+      console.log('SpoonacularAPI: Making request to:', url);
+
+      const response = await fetch(url, { headers });
+      console.log('SpoonacularAPI: Response status:', response.status);
+      
+      if (!response.ok) {
+        console.error('SpoonacularAPI: Error response:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('SpoonacularAPI: Error body:', errorText);
+        
+        // If it's a 429 (rate limit) or 403 (forbidden), provide fallback data
+        if (response.status === 429 || response.status === 403) {
+          console.log('SpoonacularAPI: Using fallback data due to API limits');
+          return getFallbackSubstitutes(ingredientName);
+        }
+        
+        throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('SpoonacularAPI: Successfully fetched substitutes:', data);
+      
+      // If the API returns an empty response, try fallback
+      if (!data || (data.status === 'failure' && !data.substitutes)) {
+        console.log('SpoonacularAPI: Using fallback data due to empty response');
+        return getFallbackSubstitutes(ingredientName);
+      }
+      
+      return data;
     } catch (error) {
-      console.error('Error getting ingredient substitutes:', error);
+      console.error('SpoonacularAPI: Error getting ingredient substitutes:', error);
+      
+      // If there's a network error, provide fallback data
+      if (error.name === 'TypeError' || error.message.includes('fetch')) {
+        console.log('SpoonacularAPI: Using fallback data due to network error');
+        return getFallbackSubstitutes(ingredientName);
+      }
+      
       throw error;
     }
   }
+};
+
+// Fallback substitutes data for common ingredients
+const getFallbackSubstitutes = (ingredientName) => {
+  const fallbackData = {
+    'butter': {
+      status: 'success',
+      substitutes: [
+        {
+          name: 'Olive Oil',
+          message: 'Use 3/4 cup olive oil for 1 cup butter in most recipes. Best for cooking and baking.',
+          ratio: '3/4 cup olive oil = 1 cup butter'
+        },
+        {
+          name: 'Coconut Oil',
+          message: 'Use 1:1 ratio. Best for baking and cooking. Adds a slight coconut flavor.',
+          ratio: '1:1 ratio'
+        },
+        {
+          name: 'Applesauce',
+          message: 'Use 1/2 cup applesauce for 1 cup butter in baking. Reduces fat content.',
+          ratio: '1/2 cup applesauce = 1 cup butter'
+        }
+      ],
+      message: 'These are common substitutes for butter. Adjust based on your recipe and dietary needs.'
+    },
+    'eggs': {
+      status: 'success',
+      substitutes: [
+        {
+          name: 'Flaxseed Meal',
+          message: 'Mix 1 tbsp ground flaxseed with 3 tbsp water. Let sit for 5 minutes before using.',
+          ratio: '1 tbsp flaxseed + 3 tbsp water = 1 egg'
+        },
+        {
+          name: 'Chia Seeds',
+          message: 'Mix 1 tbsp chia seeds with 3 tbsp water. Let sit for 15 minutes before using.',
+          ratio: '1 tbsp chia seeds + 3 tbsp water = 1 egg'
+        },
+        {
+          name: 'Banana',
+          message: 'Use 1/4 cup mashed banana for 1 egg in baking. Adds sweetness and moisture.',
+          ratio: '1/4 cup mashed banana = 1 egg'
+        }
+      ],
+      message: 'These substitutes work well in most baking recipes. Adjust baking time as needed.'
+    },
+    'milk': {
+      status: 'success',
+      substitutes: [
+        {
+          name: 'Almond Milk',
+          message: 'Use 1:1 ratio. Unsweetened works best for savory dishes.',
+          ratio: '1:1 ratio'
+        },
+        {
+          name: 'Soy Milk',
+          message: 'Use 1:1 ratio. Good for both sweet and savory recipes.',
+          ratio: '1:1 ratio'
+        },
+        {
+          name: 'Coconut Milk',
+          message: 'Use 1:1 ratio. Adds a slight coconut flavor.',
+          ratio: '1:1 ratio'
+        }
+      ],
+      message: 'Plant-based milks work well in most recipes. Choose unsweetened for savory dishes.'
+    }
+  };
+
+  const ingredient = ingredientName.toLowerCase();
+  return fallbackData[ingredient] || {
+    status: 'failure',
+    message: `No substitutes found for "${ingredientName}". Try common ingredients like butter, eggs, or milk.`
+  };
 };

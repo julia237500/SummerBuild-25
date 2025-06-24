@@ -18,10 +18,108 @@ export default function IngredientSubstitutes() {
       const data = await spoonacularApi.getIngredientSubstitutes(ingredient);
       setSubstitutes(data);
     } catch (err) {
-      setError('Failed to find substitutes. Please try again.');
-      console.error(err);
+      console.error('Error in handleSearch:', err);
+      setError(`Failed to find substitutes: ${err.message}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Helper function to render substitutes based on different response formats
+  const renderSubstitutes = () => {
+    if (!substitutes) return null;
+
+    // Handle different response formats
+    let substitutesList = [];
+    let generalMessage = '';
+    let status = 'unknown';
+
+    // Check if it's the expected format (array of strings)
+    if (substitutes.status === 'success' && Array.isArray(substitutes.substitutes)) {
+      substitutesList = substitutes.substitutes.map(substitute => ({
+        name: substitute.split('=')[0]?.trim() || substitute,
+        message: substitute,
+        ratio: substitute.split('=')[1]?.trim() || ''
+      }));
+      generalMessage = substitutes.message || '';
+      status = 'success';
+    }
+    // Check if it's the object format with name and message
+    else if (substitutes.status === 'success' && substitutes.substitutes && Array.isArray(substitutes.substitutes)) {
+      substitutesList = substitutes.substitutes;
+      generalMessage = substitutes.message || '';
+      status = 'success';
+    }
+    // Check if it's a different format (direct array)
+    else if (Array.isArray(substitutes)) {
+      substitutesList = substitutes.map(substitute => {
+        if (typeof substitute === 'string') {
+          return {
+            name: substitute.split('=')[0]?.trim() || substitute,
+            message: substitute,
+            ratio: substitute.split('=')[1]?.trim() || ''
+          };
+        }
+        return substitute;
+      });
+      status = 'success';
+    }
+    // Check if it's an object with different structure
+    else if (substitutes.substitutes && Array.isArray(substitutes.substitutes)) {
+      substitutesList = substitutes.substitutes;
+      generalMessage = substitutes.message || '';
+      status = 'success';
+    }
+    // Check if it's a single substitute object
+    else if (substitutes.name || substitutes.substitute) {
+      substitutesList = [substitutes];
+      status = 'success';
+    }
+    // Check if it's an error response
+    else if (substitutes.status === 'failure' || substitutes.error) {
+      status = 'failure';
+      generalMessage = substitutes.message || substitutes.error || 'No substitutes found';
+    }
+
+    if (status === 'success' && substitutesList.length > 0) {
+      return (
+        <div className="substitutes-content">
+          <h3>Substitutes for {ingredient}</h3>
+          
+          <div className="substitutes-list">
+            {substitutesList.map((substitute, index) => (
+              <div key={index} className="substitute-item">
+                <h4>{substitute.name || substitute.substitute || substitute.title || 'Unknown Substitute'}</h4>
+                {(substitute.message || substitute.description) && (
+                  <p className="substitute-message">{substitute.message || substitute.description}</p>
+                )}
+                {substitute.ratio && (
+                  <p className="substitute-ratio">Ratio: {substitute.ratio}</p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {generalMessage && (
+            <div className="general-message">
+              <h4>General Information:</h4>
+              <p>{generalMessage}</p>
+            </div>
+          )}
+        </div>
+      );
+    } else if (status === 'failure') {
+      return (
+        <div className="no-results">
+          <p>{generalMessage || `No substitutes found for "${ingredient}". Try a different ingredient or check the spelling.`}</p>
+        </div>
+      );
+    } else {
+      return (
+        <div className="no-results">
+          <p>No substitutes found for "{ingredient}". Try a different ingredient or check the spelling.</p>
+        </div>
+      );
     }
   };
 
@@ -52,37 +150,7 @@ export default function IngredientSubstitutes() {
 
       {substitutes && (
         <div className="substitutes-results">
-          {substitutes.status === 'success' ? (
-            <div className="substitutes-content">
-              <h3>Substitutes for {ingredient}</h3>
-              
-              {substitutes.substitutes && substitutes.substitutes.length > 0 ? (
-                <div className="substitutes-list">
-                  {substitutes.substitutes.map((substitute, index) => (
-                    <div key={index} className="substitute-item">
-                      <h4>{substitute.name}</h4>
-                      {substitute.message && (
-                        <p className="substitute-message">{substitute.message}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="no-substitutes">No specific substitutes found for {ingredient}.</p>
-              )}
-
-              {substitutes.message && (
-                <div className="general-message">
-                  <h4>General Information:</h4>
-                  <p>{substitutes.message}</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="no-results">
-              <p>No substitutes found for "{ingredient}". Try a different ingredient or check the spelling.</p>
-            </div>
-          )}
+          {renderSubstitutes()}
         </div>
       )}
 
